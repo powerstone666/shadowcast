@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+.app-grid-bg {
+  position: relative;
+  background-color: transparent;
+}
+
+.app-grid-bg::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-color: #efeeea;
+  background-image:
+    linear-gradient(rgba(210, 207, 198, 0.72) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(210, 207, 198, 0.72) 1px, transparent 1px);
+  background-size: 96px 96px;
+  background-position: 0 0;
+}
