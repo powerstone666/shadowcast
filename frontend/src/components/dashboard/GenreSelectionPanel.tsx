@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { initialGenres } from '../../data'
+import { fetchGenrePool, saveGenrePool } from '../../services/genreConfigs'
 import type { GenreRecord } from '../../types'
 import { mutedLabelClass, sectionTitleClass, surfaceClass } from '../../ui'
 
@@ -30,29 +31,97 @@ const genreIcons: Record<string, string> = {
 
 function GenreSelectionPanel() {
   const [genres, setGenres] = useState(initialGenres)
+  const [lastSavedGenres, setLastSavedGenres] = useState(initialGenres)
   const [draggingKey, setDraggingKey] = useState<string | null>(null)
   const [activeDropZone, setActiveDropZone] = useState<StackType | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSaving, setIsSaving] = useState(false)
+
+  useEffect(() => {
+    void loadGenrePool()
+  }, [])
 
   const selectedGenres = genres.filter((genre) => genre.enabled)
   const genrePool = genres.filter((genre) => !genre.enabled)
 
-  const moveGenre = (genreKey: string, destination: StackType) => {
-    setGenres((currentGenres) =>
-      currentGenres.map((genre) =>
+  async function loadGenrePool() {
+    setIsLoading(true)
+    try {
+      const storedGenrePool = await fetchGenrePool()
+      const selectedGenreSet = new Set(storedGenrePool.selectedGenres)
+      setGenres((currentGenres) =>
+        currentGenres.map((genre) => ({
+          ...genre,
+          enabled: selectedGenreSet.has(genre.genre),
+        })),
+      )
+      setLastSavedGenres((currentGenres) =>
+        currentGenres.map((genre) => ({
+          ...genre,
+          enabled: selectedGenreSet.has(genre.genre),
+        })),
+      )
+    } catch {
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  async function moveGenre(genreKey: string, destination: StackType) {
+    const nextGenres = genres.map((genre) =>
         genre.key === genreKey
           ? {
               ...genre,
               enabled: destination === 'selected',
             }
           : genre,
-      ),
-    )
+      )
+
+    setGenres(nextGenres)
   }
+
+  async function handleSaveGenres() {
+    const currentGenresSnapshot = genres.map((genre) => ({ ...genre }))
+    setIsSaving(true)
+    try {
+      const nextSelectedGenres = currentGenresSnapshot
+        .filter((genre) => genre.enabled)
+        .map((genre) => genre.genre)
+
+      const savedGenrePool = await saveGenrePool({
+        selectedGenres: nextSelectedGenres,
+      })
+      const savedGenreSet = new Set(savedGenrePool.selectedGenres)
+      const syncedGenres = currentGenresSnapshot.map((genre) => ({
+        ...genre,
+        enabled: savedGenreSet.has(genre.genre),
+      }))
+
+      setGenres(syncedGenres)
+      setLastSavedGenres(syncedGenres)
+    } catch {
+      setGenres(lastSavedGenres.map((genre) => ({ ...genre })))
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const hasPendingChanges = genres.some((genre, index) => genre.enabled !== lastSavedGenres[index]?.enabled)
 
   return (
     <article className={`${surfaceClass} overflow-hidden`}>
-      <div className="border-b border-[rgba(88,66,45,0.09)] px-8 py-6">
+      <div className="flex items-center justify-between gap-4 border-b border-[rgba(88,66,45,0.09)] px-8 py-6">
         <h2 className={sectionTitleClass}>Genre Selection Panel</h2>
+        <button
+          type="button"
+          onClick={() => {
+            void handleSaveGenres()
+          }}
+          disabled={isLoading || isSaving || !hasPendingChanges}
+          className="rounded-full bg-[#cc7440] px-5 py-3 text-sm font-semibold text-[#fff7ef] disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isSaving ? 'Saving...' : 'Update Genres'}
+        </button>
       </div>
       <div className="flex flex-col gap-6 px-6 py-6">
         <GenreStack
@@ -69,11 +138,12 @@ function GenreSelectionPanel() {
           }}
           onDragEnter={setActiveDropZone}
           onDrop={(genreKey) => {
-            moveGenre(genreKey, 'selected')
+            void moveGenre(genreKey, 'selected')
             setDraggingKey(null)
             setActiveDropZone(null)
           }}
-          emptyMessage="Drag genres here to activate them."
+          emptyMessage={isLoading ? 'Loading genres...' : 'Drag genres here to activate them.'}
+          disabled={isLoading || isSaving}
         />
 
         <GenreStack
@@ -90,11 +160,12 @@ function GenreSelectionPanel() {
           }}
           onDragEnter={setActiveDropZone}
           onDrop={(genreKey) => {
-            moveGenre(genreKey, 'pool')
+            void moveGenre(genreKey, 'pool')
             setDraggingKey(null)
             setActiveDropZone(null)
           }}
-          emptyMessage="All genres are currently active."
+          emptyMessage={isLoading ? 'Loading genres...' : 'All genres are currently active.'}
+          disabled={isLoading || isSaving}
         />
       </div>
     </article>
@@ -113,6 +184,7 @@ function GenreStack({
   onDragEnter,
   onDrop,
   emptyMessage,
+  disabled,
 }: {
   title: string
   description: string
@@ -125,6 +197,7 @@ function GenreStack({
   onDragEnter: (stack: StackType | null) => void
   onDrop: (genreKey: string) => void
   emptyMessage: string
+  disabled: boolean
 }) {
   const isActive = activeDropZone === stackType
 
@@ -134,12 +207,26 @@ function GenreStack({
         isActive ? 'border-[#cc7440] bg-[rgba(204,116,64,0.06)]' : 'border-[rgba(88,66,45,0.12)] bg-transparent'
       }`}
       onDragOver={(event) => {
+        if (disabled) {
+          return
+        }
         event.preventDefault()
         onDragEnter(stackType)
       }}
-      onDragEnter={() => onDragEnter(stackType)}
-      onDragLeave={() => onDragEnter(null)}
+      onDragEnter={() => {
+        if (!disabled) {
+          onDragEnter(stackType)
+        }
+      }}
+      onDragLeave={() => {
+        if (!disabled) {
+          onDragEnter(null)
+        }
+      }}
       onDrop={(event) => {
+        if (disabled) {
+          return
+        }
         event.preventDefault()
         const genreKey = event.dataTransfer.getData('text/genre-key')
         if (genreKey) {
@@ -162,15 +249,18 @@ function GenreStack({
             <button
               key={genre.key}
               type="button"
-              draggable
+              draggable={!disabled}
               onDragStart={(event) => {
+                if (disabled) {
+                  return
+                }
                 event.dataTransfer.setData('text/genre-key', genre.key)
                 onDragStart(genre.key)
               }}
               onDragEnd={onDragEnd}
               className={`border border-[rgba(88,66,45,0.12)] bg-transparent px-3 py-2 font-mono text-sm text-[#5a4a3d] transition-opacity ${
                 draggingKey === genre.key ? 'opacity-50' : 'opacity-100'
-              }`}
+              } ${disabled ? 'cursor-not-allowed opacity-60' : ''}`}
             >
               <span className="inline-flex items-center gap-2 font-sans">
                 <span aria-hidden="true">{genreIcons[genre.genre] ?? '•'}</span>

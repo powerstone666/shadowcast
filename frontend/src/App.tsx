@@ -5,6 +5,8 @@ import OverviewSection from './components/overview/OverviewSection'
 import type { NavigationKey } from './types'
 import { appBackgroundClass, contentWrapClass } from './ui'
 
+const ACTIVE_SECTION_STORAGE_KEY = 'yt-automation-active-section'
+
 const navigationItems: Array<{ key: NavigationKey; label: string }> = [
   { key: 'overview', label: 'Overview' },
   { key: 'dashboard', label: 'Dashboard' },
@@ -15,8 +17,22 @@ function App() {
   const [activeKey, setActiveKey] = useState<NavigationKey>(() => {
     const searchParams = new URLSearchParams(window.location.search)
     const section = searchParams.get('section')
-    return section === 'api-configuration' ? 'api-configuration' : 'overview'
+    if (section === 'api-configuration') {
+      return 'api-configuration'
+    }
+
+    const storedSection = window.localStorage.getItem(ACTIVE_SECTION_STORAGE_KEY)
+    if (storedSection === 'overview' || storedSection === 'dashboard' || storedSection === 'api-configuration') {
+      return storedSection
+    }
+
+    return 'overview'
   })
+
+  function handleSectionChange(nextKey: NavigationKey) {
+    setActiveKey(nextKey)
+    window.localStorage.setItem(ACTIVE_SECTION_STORAGE_KEY, nextKey)
+  }
 
   return (
     <main className={appBackgroundClass}>
@@ -30,7 +46,7 @@ function App() {
                 <button
                   key={item.key}
                   type="button"
-                  onClick={() => setActiveKey(item.key)}
+                  onClick={() => handleSectionChange(item.key)}
                   className={`min-w-[176px] rounded-full px-7 py-3.5 text-base font-semibold tracking-[-0.01em] transition-colors max-md:min-w-0 max-md:px-5 max-md:py-3 ${
                     isActive
                       ? 'bg-[#cc7440] text-[#fff7ef]'

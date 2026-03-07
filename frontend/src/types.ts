@@ -74,3 +74,48 @@ export type YoutubeOverviewResponse = {
   performance?: OverviewPerformance
   error?: string
 }
+
+export type AgentRoleConfig = {
+  roleKey: string
+  apiUrl: string
+  apiKey: string
+  modelName: string
+}
+
+export type GenrePool = {
+  selectedGenres: string[]
+}
+
+export type PipelineStage = {
+  key: PipelineStageKey
+  label: string
+}
+
+export type PipelineStageKey =
+  | 'genre_selection'
+  | 'script_generation'
+  | 'council_review'
+  | 'director_plan'
+  | 'video_generation'
+  | 'thumbnail_generation'
+  | 'youtube_publish'
+
+export type PipelineLogEntry = {
+  id: string
+  timestamp: string
+  message: string
+}
+
+export type PipelineRealtimeSnapshot = {
+  started: boolean
+  isRunning: boolean
+  runOutcome: 'completed' | 'failed' | 'terminated' | null
+  activeStageKey: PipelineStageKey | null
+  completedStageKeys: PipelineStageKey[]
+  lastCompletedStageKey: PipelineStageKey | null
+  logs: PipelineLogEntry[]
+}
+
+export type PipelineSocketEvent =
+  | { type: 'snapshot'; payload: PipelineRealtimeSnapshot }
+  | { type: 'pong'; payload: { timestamp: string } }

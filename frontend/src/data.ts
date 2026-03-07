@@ -1,4 +1,4 @@
-import type { ApiServiceRecord, GenreRecord, NavigationKey, VideoRecord } from './types'
+import type { ApiServiceRecord, GenreRecord, NavigationKey, PipelineStage, VideoRecord } from './types'
 
 export const navigationLabels: Record<NavigationKey, string> = {
   overview: 'YouTube Overview',
@@ -69,18 +69,15 @@ export const performanceMetrics = {
   weeklyGrowthPercent: 78,
 }
 
-export const pipelineStages = [
-  'planning',
-  'topic_search',
-  'script_generation',
-  'council_review',
-  'segment_planning',
-  'media_generation',
-  'rendering',
-  'uploading',
+export const pipelineStages: PipelineStage[] = [
+  { key: 'genre_selection', label: 'Genre Selection' },
+  { key: 'script_generation', label: 'Script Generation' },
+  { key: 'council_review', label: 'Council Review' },
+  { key: 'director_plan', label: 'Director Plan' },
+  { key: 'video_generation', label: 'Video Generation' },
+  { key: 'thumbnail_generation', label: 'Thumbnail Generation' },
+  { key: 'youtube_publish', label: 'YouTube Publish' },
 ]
-
-export const activeStageIndex = 5
 
 export const initialGenres: GenreRecord[] = [
   { key: 'history', genre: 'History', enabled: true, weight: 84, usedRecently: true },

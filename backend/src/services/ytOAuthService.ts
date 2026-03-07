@@ -1,4 +1,6 @@
 import { randomBytes } from "node:crypto";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 
 import { PgDbService } from "./dbService.js";
 import { Logger } from "../utils/commonUtils.js";
@@ -11,6 +13,7 @@ const YOUTUBE_CHANNELS_URL =
 const YOUTUBE_SCOPES = [
   "https://www.googleapis.com/auth/youtube",
   "https://www.googleapis.com/auth/youtube.upload",
+  "https://www.googleapis.com/auth/yt-analytics.readonly",
 ].join(" ");
 
 type TokenExchangeResponse = {
@@ -102,6 +105,12 @@ export type YoutubeOAuthStatus = {
   error?: string;
 };
 
+export type YoutubeConnectionTestResult = {
+  connected: boolean;
+  channelId?: string;
+  channelTitle?: string;
+};
+
 type StoredTokens = {
   channelId?: string;
   channelTitle?: string;
@@ -114,6 +123,26 @@ type StoredTokens = {
 
 type YouTubeRequestOptions = {
   retryOnUnauthorized?: boolean;
+};
+
+type UploadShortInput = {
+  videoPath: string;
+  title: string;
+  description: string;
+  privacyStatus?: "public" | "private" | "unlisted";
+};
+
+type SetThumbnailInput = {
+  videoId: string;
+  thumbnailPath: string;
+};
+
+export type YoutubePublishResult = {
+  videoId: string;
+  videoUrl: string;
+  thumbnailUrl: string;
+  status: "uploaded";
+  publishedAt: string;
 };
 
 export type YoutubeOverviewResponse = {
@@ -277,6 +306,128 @@ export class YoutubeOAuthService {
     );
   }
 
+  async testConnection(): Promise<YoutubeConnectionTestResult> {
+    const status = await this.getStatus();
+    if (!status.connected) {
+      return {
+        connected: false,
+      };
+    }
+
+    const response = await this.fetchJsonWithAuth<ChannelsListResponse>(
+      "https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true&maxResults=1",
+    );
+
+    const firstChannel = response.items?.[0];
+    return {
+      connected: true,
+      ...(firstChannel?.id ? { channelId: firstChannel.id } : {}),
+      ...(firstChannel?.snippet?.title ? { channelTitle: firstChannel.snippet.title } : {}),
+    };
+  }
+
+  async uploadShort(input: UploadShortInput): Promise<{
+    videoId: string;
+    videoUrl: string;
+    publishedAt: string;
+    status: "uploaded";
+  }> {
+    const videoBuffer = await readFile(input.videoPath);
+    const boundary = `yt-upload-${randomBytes(12).toString("hex")}`;
+    const metadata = {
+      snippet: {
+        title: input.title,
+        description: ensureShortsDescription(input.description),
+      },
+      status: {
+        privacyStatus: input.privacyStatus ?? "public",
+        selfDeclaredMadeForKids: false,
+      },
+    };
+
+    const multipartBody = Buffer.concat([
+      Buffer.from(
+        `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n`,
+      ),
+      Buffer.from(
+        `--${boundary}\r\nContent-Type: video/mp4\r\nContent-Transfer-Encoding: binary\r\n\r\n`,
+      ),
+      videoBuffer,
+      Buffer.from(`\r\n--${boundary}--\r\n`),
+    ]);
+
+    const response = await this.fetchWithAuth(
+      "https://www.googleapis.com/upload/youtube/v3/videos?part=snippet,status&uploadType=multipart",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": `multipart/related; boundary=${boundary}`,
+          "Content-Length": String(multipartBody.length),
+        },
+        body: multipartBody,
+      },
+    );
+
+    const payload = (await response.json()) as {
+      id?: string;
+      snippet?: {
+        publishedAt?: string;
+      };
+    };
+
+    if (!response.ok || !payload.id) {
+      throw new Error("Failed to upload YouTube Short");
+    }
+
+    return {
+      videoId: payload.id,
+      videoUrl: `https://www.youtube.com/shorts/${payload.id}`,
+      publishedAt: payload.snippet?.publishedAt ?? new Date().toISOString(),
+      status: "uploaded",
+    };
+  }
+
+  async setThumbnail(input: SetThumbnailInput): Promise<{ thumbnailUrl: string }> {
+    const imageBuffer = await readFile(input.thumbnailPath);
+    const response = await this.fetchWithAuth(
+      `https://www.googleapis.com/upload/youtube/v3/thumbnails/set?videoId=${encodeURIComponent(
+        input.videoId,
+      )}&uploadType=media`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": inferImageContentType(input.thumbnailPath),
+          "Content-Length": String(imageBuffer.length),
+        },
+        body: imageBuffer,
+      },
+    );
+
+    const payload = (await response.json()) as {
+      items?: Array<{
+        default?: { url?: string };
+        medium?: { url?: string };
+        high?: { url?: string };
+        maxres?: { url?: string };
+      }>;
+    };
+
+    const thumbnails = payload.items?.[0];
+    const thumbnailUrl =
+      thumbnails?.maxres?.url ??
+      thumbnails?.high?.url ??
+      thumbnails?.medium?.url ??
+      thumbnails?.default?.url;
+
+    if (!response.ok || !thumbnailUrl) {
+      throw new Error("Failed to set YouTube thumbnail");
+    }
+
+    return {
+      thumbnailUrl,
+    };
+  }
+
   async getOverview(): Promise<YoutubeOverviewResponse> {
     const currentConnection = await this.getActiveRow();
     if (!currentConnection) {
@@ -432,18 +583,7 @@ export class YoutubeOAuthService {
     url: string,
     options: YouTubeRequestOptions = {},
   ): Promise<T> {
-    const token = await this.getUsableAccessToken(options.retryOnUnauthorized ?? true);
-
-    const response = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (response.status === 401 && options.retryOnUnauthorized !== false) {
-      await this.refreshConnection();
-      return this.fetchJsonWithAuth<T>(url, { retryOnUnauthorized: false });
-    }
+    const response = await this.fetchWithAuth(url, undefined, options);
 
     if (!response.ok) {
       const details = await response.text();
@@ -451,6 +591,29 @@ export class YoutubeOAuthService {
     }
 
     return (await response.json()) as T;
+  }
+
+  private async fetchWithAuth(
+    url: string,
+    init?: RequestInit,
+    options: YouTubeRequestOptions = {},
+  ): Promise<Response> {
+    const token = await this.getUsableAccessToken(options.retryOnUnauthorized ?? true);
+
+    const headers = new Headers(init?.headers);
+    headers.set("Authorization", `Bearer ${token}`);
+
+    const response = await fetch(url, {
+      ...init,
+      headers,
+    });
+
+    if (response.status === 401 && options.retryOnUnauthorized !== false) {
+      await this.refreshConnection();
+      return this.fetchWithAuth(url, init, { retryOnUnauthorized: false });
+    }
+
+    return response;
   }
 
   private async fetchChannelProfile(accessToken: string): Promise<{
@@ -719,4 +882,21 @@ function deriveTopGenre(
   }
 
   return topGenre;
+}
+
+function ensureShortsDescription(description: string): string {
+  return /#shorts/i.test(description) ? description : `${description}\n\n#Shorts`;
+}
+
+function inferImageContentType(filePath: string): string {
+  const extension = path.extname(filePath).toLowerCase();
+  switch (extension) {
+    case ".jpg":
+    case ".jpeg":
+      return "image/jpeg";
+    case ".webp":
+      return "image/webp";
+    default:
+      return "image/png";
+  }
 }

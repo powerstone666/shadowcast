@@ -8,7 +8,6 @@ import { surfaceClass } from '../../ui'
 
 function OverviewSection() {
   const [overview, setOverview] = useState<YoutubeOverviewResponse | null>(null)
-  const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
@@ -20,9 +19,8 @@ function OverviewSection() {
     try {
       const nextOverview = await fetchYoutubeOverview()
       setOverview(nextOverview)
-      setError(null)
-    } catch (caughtError) {
-      setError(caughtError instanceof Error ? caughtError.message : 'Failed to load YouTube overview.')
+    } catch (error) {
+      console.error('Failed to fetch YouTube overview:', error)
     } finally {
       setIsLoading(false)
     }
@@ -44,12 +42,6 @@ function OverviewSection() {
 
   return (
     <section className="flex flex-col gap-6 bg-transparent">
-      {error ? (
-        <article className={`${surfaceClass} px-6 py-5 text-sm font-medium text-[#a94c4c]`}>
-          {error}
-        </article>
-      ) : null}
-
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
         {(isLoading ? loadingMetricCards : metricCards).map((metric) => (
           <article key={metric.title} className={`${surfaceClass} px-6 py-6`}>
