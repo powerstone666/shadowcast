@@ -309,6 +309,9 @@ export class VideoGenerationWorkflow {
           this.logger.info(`Rendering clip for segment ${syncedSegment.order}`, { 
             videoPrompt: validatedSegmentPlan.videoPrompt.substring(0, 100) + "..." 
           });
+          pipelineRealtimeService.appendLog(
+            `segment ${syncedSegment.order} model prompt (exact):\n${validatedSegmentPlan.videoPrompt}`,
+          );
 
           let artifact: GeneratedVideoArtifact;
           try {
@@ -330,6 +333,9 @@ export class VideoGenerationWorkflow {
             const sanitizedPrompt = this.sanitizeVideoPrompt(
               validatedSegmentPlan.videoPrompt,
               syncedSegment.order,
+            );
+            pipelineRealtimeService.appendLog(
+              `segment ${syncedSegment.order} sanitized model prompt (exact):\n${sanitizedPrompt}`,
             );
             artifact = await this.videoGenerationService.generateVideoClip({
               config: videoGenConfig,
@@ -483,6 +489,7 @@ function validateGeneratedVideoSegment(
   // Always use the authoritative duration from the synced package — do not trust the LLM's value.
   return {
     ...segment,
+    narration: syncedSegment.narration,
     durationSec: roundDuration(syncedSegment.durationSec),
   };
 }

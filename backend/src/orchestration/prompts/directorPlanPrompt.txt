@@ -18,12 +18,19 @@ NARRATION & STORYTELLING RULES:
 - Do NOT use descriptive text or summaries in the "narration" field. Use dialogue-like, engaging storytelling.
 - The tone should be conversational, emotional, and punchy. Imagine a real narrator speaking directly to the viewer.
 - Use variety in sentence structure: rhetorical questions, dramatic reveals, and short, impactful statements.
+- Preserve direct dialogue from the script when present (keep quoted lines verbatim where possible).
+- Ensure at least one segment includes a direct quote line in narration when the script contains dialogue.
+- Dialogue format example for narration lines: Person 1: "Hey, how are you?" Person 2: "Fine."
+- Characters must actively talk to each other with clear spoken dialogue in relevant beats.
+- Dialogue must remain the main focus of spoken content.
 - Ensure the narration flows naturally between segments to create a single, cohesive story.
 
 VISUAL STYLE RULES:
 - The visualDirection must describe narrator-driven visual storytelling: scenes, imagery, text overlays, maps, people, and cinematic compositions.
-- DO NOT mention music, sound effects, or audio cues. The video generator produces silent video; narration is added separately.
-- Think documentary or news reel visuals that support what the narrator is saying.
+- Plan visualDirection for native audio-capable generation when available: include where spoken dialogue happens and who speaks.
+- For dialogue beats, describe lip-sync friendly staging (clear face visibility, speaker framing, mouth visibility).
+- Think documentary or news reel visuals that support what the narrator is saying, including direct spoken lines.
+- Any music direction must be very light ambient background only and never dominant.
 
 CONTENT SAFETY (ABSOLUTE PRIORITY — violations cause generation failure):
 - The visualDirection feeds into an AI video generator with strict content policies.

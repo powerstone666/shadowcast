@@ -42,6 +42,13 @@ Story requirements:
 - Provide a practical short-form script or structured outline suitable for voiceover.
 - Keep it tightly paced and entertainment-first.
 - Use plain language and natural flow.
+- Include direct spoken dialogue lines in the story (use quotation marks), not just narration.
+- Include at least 2 short dialogue lines that a character, witness, or narrator says verbatim.
+- Dialogue format example: Person 1: "Hey, how are you?" Person 2: "Fine."
+- Characters must actively talk to each other with clear spoken dialogue.
+- Make dialogue the main focus of the script.
+- Write dialogue with lip-sync in mind (clean, speakable lines that match visible mouth movement).
+- If music is mentioned, keep it as very light ambient background only and never dominant.
 - STRICT LENGTH CONSTRAINT: The script MUST be timed to take exactly 30 to 40 seconds to read aloud. NEVER exceed 60 seconds under any circumstance. Scripts approaching 60 seconds are heavily penalized. Shorter, punchier 30-40 second scripts perform best.
 
 CONTENT SAFETY (ABSOLUTE PRIORITY — violations cause generation failure):

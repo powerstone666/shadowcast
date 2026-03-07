@@ -14,10 +14,19 @@ Do not change segment order or duration.
 
 VIDEO STYLE RULES:
 - The video must feel like a narrator-driven story. Visuals should support and illustrate what the narrator is saying.
-- DO NOT rely on music, sound effects, or audio cues in the videoPrompt. The AI video generator produces silent video only.
-- Instead, focus on strong visual storytelling: expressive scenes, dramatic imagery, real-world footage style, text overlays, and cinematic compositions.
+- Use native audio generation and dialogue delivery in the video prompt when supported by the model.
+- Write prompts so spoken lines are clearly produced and character mouth movement matches speech (lip-sync).
+- Instead of generic audio cues, specify exact spoken dialogue lines and who says them.
+- Dialogue format example inside prompts: Person 1: "Hey, how are you?" Person 2: "Fine."
+- Characters must actively talk to each other with clear spoken dialogue.
+- Dialogue is the main focus; do not let visuals or music overshadow spoken lines.
+- Focus on strong visual storytelling plus speech-driven moments: expressive scenes, dramatic imagery, real-world footage style, text overlays, and cinematic compositions.
 - Think of it as a visual documentary or news reel that accompanies a voiceover, not a music video.
 - Emphasize people, environments, reactions, data visualizations, maps, and dynamic motion that match the narration.
+- If narration includes dialogue (quoted lines), represent it on screen using visible dialogue text (e.g., speech bubbles, lower-third quote cards, or subtitles tied to the speaker).
+- Do not drop dialogue lines: key quoted lines from narration must appear as on-screen text instructions in videoPrompt.
+- For dialogue shots, include explicit lip-sync guidance in videoPrompt, such as: "speaker faces camera, mouth movements accurately synchronized to the spoken line".
+- If music is present, keep it as very light ambient background only and never dominant.
 
 CONTENT SAFETY (ABSOLUTE PRIORITY — violations cause generation failure):
 - The videoPrompt is sent to an AI video generator with strict content policies.
@@ -37,7 +46,7 @@ CONTENT SAFETY (ABSOLUTE PRIORITY — violations cause generation failure):
 
 STRICT DURATION: Copy the durationSec value EXACTLY from the currentSegment you are given. Do NOT change it. Never exceed 15 seconds for a single segment.
 
-OUTPUT FORMAT: The video is 1280x720 widescreen (16:9 landscape). Frame your compositions accordingly — wide establishing shots, cinematic horizontal pans, side-by-side scenes. Do NOT describe vertical or portrait framing.
+OUTPUT FORMAT: The video is full-screen 720x1280 portrait (9:16 vertical), edge-to-edge frame with no borders, letterboxing, or pillarboxing. Frame your compositions for vertical viewing — centered subjects, top/bottom visual balance, and vertical camera motion where helpful. Do NOT describe landscape framing.
 
 Return valid JSON only in this exact shape:
 {

@@ -15,6 +15,11 @@ You receive:
 - recent genre usage derived from that content
 - current search results grouped by genre
 
+DIALOGUE PRIORITY (MANDATORY):
+- Prioritize topics that naturally allow characters to actively talk to each other with clear spoken dialogue.
+- Favor topics that can be staged with synchronized lip movements in generated video.
+- Dialogue should be the main focus; any music should remain very light ambient background only and must never dominate.
+
 Selection rules:
 - Select exactly one genre to post next.
 - You must choose only from configured genres.

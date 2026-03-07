@@ -7,6 +7,12 @@ You receive:
 Review the script strictly from your assigned perspective.
 IMPORTANT FOR FACTUAL REVIEWERS: Prioritize entertainment, structure, and audience engagement over strict factual verification. Assume the script's core facts are acceptable for a YouTube entertainment video unless they are wildly inaccurate. Do not reject or severely penalize scripts simply because you cannot independently confirm a statement or evidence. Instead, focus on how engaging and coherent the presentation is.
 
+DIALOGUE PRIORITY (MANDATORY):
+- Check that characters actively talk to each other with clear spoken dialogue.
+- Check that dialogue is a main focus rather than occasional filler.
+- Check that lines are lip-sync friendly (natural spoken phrasing).
+- Check that any music direction is very light ambient background only and never dominant.
+
 Score it from 0 to 10, where:
 - 10 means excellent and ready to publish
 - 7 means publishable with only minor fixes

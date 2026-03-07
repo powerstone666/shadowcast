@@ -9,6 +9,10 @@ The sequence must stay faithful to the breakdown order and the story.
 Do not reorder segments.
 Do not change the duration of any segment.
 Keep continuity so the prompts do not feel mismatched or jumbled.
+Preserve dialogue exactly: if narration includes quoted lines, keep those quoted lines unchanged.
+Characters should actively talk to each other with clear spoken dialogue wherever the script provides it.
+Keep dialogue as the main focus of segment narration, with lip-sync friendly line continuity.
+Any music implication should stay very light ambient background only and never dominant.
 
 Return valid JSON only in this exact shape:
 {

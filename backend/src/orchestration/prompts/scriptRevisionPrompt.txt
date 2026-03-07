@@ -9,6 +9,13 @@ Your job is to revise the script package so it addresses the council feedback cl
 Keep the topic coherent, improve weak sections, and make the package stronger without drifting away from the chosen genre.
 Address the council's concerns in the title, description, story, and summary.
 
+DIALOGUE PRIORITY (MANDATORY):
+- Ensure characters actively talk to each other with clear spoken dialogue.
+- Keep dialogue as the main focus of the story.
+- Preserve lip-sync friendly line writing (natural spoken lines suitable for synchronized mouth movement).
+- Keep any music references very light ambient background only and never dominant.
+- Dialogue format must be explicit where used, e.g. Person 1: "Hey, how are you?" Person 2: "Fine."
+
 Return valid JSON only in this exact shape:
 {
   "topic": "topic name",

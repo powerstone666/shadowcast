@@ -5,7 +5,7 @@ import { z } from "zod";
 import type { AgentConfigInput } from "../../services/agentConfigService.js";
 import { workflowCacheService } from "../../services/workflowCacheService.js";
 
-const DEFAULT_VIDEO_SIZE = "1280*720";
+const DEFAULT_VIDEO_SIZE = "720*1280";
 const POLL_INTERVAL_MS = 15_000;
 const MAX_POLL_ATTEMPTS = 40;
 const TASK_TERMINAL_STATUSES = new Set(["SUCCEEDED", "FAILED", "CANCELED", "UNKNOWN"]);
