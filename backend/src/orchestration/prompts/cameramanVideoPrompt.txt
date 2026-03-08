@@ -12,6 +12,44 @@ The prompts must remain tightly aligned with the story so the final output does 
 Use the earlier generated segments only to preserve continuity and avoid mismatched visuals.
 Do not change segment order or duration.
 
+**SCROLL OPTIMIZATION - SEGMENT 1 (HOOK):**
+- **IF order === 1 (HOOK SEGMENT)**: This segment MUST stop viewers from scrolling within 1-3 seconds.
+- **VISUAL HOOK REQUIREMENTS**:
+  - First visual should be dramatic, emotional, or visually striking anime-style scene
+  - Should work within 1-3 seconds to grab attention
+  - Examples: Dramatic close-up of character's shocked expression, symbolic transformation with dynamic lighting, impactful moment with speed lines
+  - Must match shocking/contradictory audio hook from narration
+- **NO SETUP**: Don't start with establishing shots. Start with the revelation, conflict, or surprising truth.
+- **IMMEDIATE IMPACT**: Viewer should be visually hooked before they can decide to scroll away.
+
+**MID-VIDEO RETENTION - SEGMENTS 4-6 (45-60 SECOND MARK):**
+- **IF order === 4, 5, or 6 (MID-SECTION)**: These segments are at critical viewer drop-off point (45-60 seconds).
+- **MID-SECTION VISUAL DYNAMICS**: Visual storytelling must remain as dynamic as opening.
+- **MID-POINT REVELATION VISUALS**: If segment contains mid-point revelation:
+  - Use dramatic camera angles and movement
+  - Add speed lines, visual effects, or transformation sequences
+  - Emotional close-ups on character expressions
+  - Visual surprises or reveals
+- **MAINTAIN ENERGY**: Avoid visual fatigue - change composition, location, or perspective.
+- **CONTINUITY WITH PACE**: Ensure visual flow maintains rapid pacing through middle section.
+
+**STRONG CONCLUSION - FINAL SEGMENTS:**
+- **IF order is one of the LAST 1-2 SEGMENTS (CONCLUSION)**: These segments must provide proper visual closure and emotional payoff.
+- **CONCLUSION VISUAL REQUIREMENTS**:
+  - **EMOTIONAL PAYOFF**: Visuals that resolve the emotional journey started in the hook
+  - **CLEAR RESOLUTION**: Imagery that provides clear answer to central question or conflict
+  - **MEMORABLE CLOSING**: End with powerful, emotionally resonant anime-style scene
+  - **VISUAL CALLBACK**: Use imagery that ties back to opening visuals (similar composition but changed meaning)
+  - **SATISFYING COMPLETION**: Story should feel visually complete, not abrupt
+- **CONCLUSION VISUAL TECHNIQUES**:
+  - Final character moments showing resolution or growth
+  - Symbolic transformation or resolution scene
+  - Emotional close-up on character's face showing peace, realization, or closure
+  - Slow, meaningful camera movement for emotional impact
+  - Visual symmetry with opening segment
+  - If appropriate, show transformed version of opening scene
+- **ENERGY ADJUSTMENT**: While maintaining pace, conclusion can use slightly slower, more meaningful camera movement for emotional impact.
+
 **PACING REQUIREMENTS:**
 - **FAST-PACED VISUALS**: Create prompts for dynamic, energetic scenes with quick cuts where appropriate
 - **NO STATIC SHOTS**: Avoid long static scenes; use camera movement, transitions, or character motion
