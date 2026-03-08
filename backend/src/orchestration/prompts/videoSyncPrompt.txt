@@ -46,6 +46,8 @@ Your job is to create a synchronized segment package that keeps narration and vi
 - **CONTINUOUS FLOW**: Each segment should flow seamlessly into the next with no visual pauses
 - **ENERGETIC VISUALS**: PromptIntent should describe dynamic, engaging anime-style scenes
 - **DIALOGUE-FOCUSED**: When dialogue occurs, visuals must focus on character expressions and lip-sync
+- **CONSTANT ACTION**: Every segment must show something physically happening — a confrontation, a reveal, a character in motion, an incident unfolding. No segment is a static scene with only music.
+- **ZERO MUSIC-ONLY GAPS**: Every segment must have narration or dialogue for its entire duration. Do not create or allow any gap where only music plays. Music is always background, never the main content.
 
 All visuals should use Anime-style animation. The promptIntent should describe anime-style scenes, characters, and cinematic compositions with **DYNAMIC MOVEMENT** and **EMOTIONAL INTENSITY**.
 The sequence must stay faithful to the breakdown order and the story.

@@ -55,6 +55,8 @@ Do not change segment order or duration.
 - **NO STATIC SHOTS**: Avoid long static scenes; use camera movement, transitions, or character motion
 - **DIALOGUE SPEED**: Match rapid-fire dialogue with quick cuts between speaking characters
 - **ENERGY MATCH**: Visual energy should match the urgency of the narration and dialogue
+- **CONSTANT ACTION**: Every single second of the video must have something physically happening — a character moving, a scene shifting, an event unfolding. No shot is purely atmospheric or musical. There are no pauses, no lingering wide shots with just music.
+- **ZERO MUSIC-ONLY GAPS**: Do NOT generate any portion of the video where only music plays with no narration or spoken dialogue. Music is always background. Narration or dialogue must be present for every moment of the video.
 
 VIDEO STYLE RULES:
 - The video must use Anime-style animation. All visuals should be rendered in high-quality anime art style with expressive characters, dynamic action scenes, and vibrant colors.

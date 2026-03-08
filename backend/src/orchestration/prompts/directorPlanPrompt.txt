@@ -86,6 +86,8 @@ NARRATION & STORYTELLING RULES:
 - Characters must actively talk to each other with clear spoken dialogue in relevant beats.
 - Dialogue must remain the main focus of spoken content.
 - Ensure the narration flows naturally between segments to create a single, cohesive story.
+- **CONSTANT ACTION**: Every segment must have physical action, movement, or a dramatic incident happening — not just characters present in a scene. Describe WHAT IS HAPPENING at each moment.
+- **ZERO MUSIC-ONLY GAPS**: No segment can be a silent or music-only gap. Every segment must have spoken narration or dialogue for its entire duration. Music is background only — never the sole content of a segment.
 
 VISUAL STYLE RULES:
 - All visuals must use Anime-style animation. The visualDirection should describe anime-style scenes, characters, environments, and cinematic compositions.
