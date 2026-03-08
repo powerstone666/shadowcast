@@ -16,10 +16,6 @@ import {
 import { GenreSelectionWorkflow } from "../orchestration/workflows/genreSelectionWorkflow.js";
 import { ScriptGenerationWorkflow } from "../orchestration/workflows/scriptGenerationWorkflow.js";
 import {
-  ThumbnailGenerationWorkflow,
-  thumbnailGenerationInputSchema,
-} from "../orchestration/workflows/thumbnailGenerationWorkflow.js";
-import {
   YoutubePublishWorkflow,
   youtubePublishInputSchema,
 } from "../orchestration/workflows/youtubePublishWorkflow.js";
@@ -33,7 +29,6 @@ const councilReviewWorkflow = new CouncilReviewWorkflow();
 const directorPlanWorkflow = new DirectorPlanWorkflow();
 const genreSelectionWorkflow = new GenreSelectionWorkflow();
 const scriptGenerationWorkflow = new ScriptGenerationWorkflow();
-const thumbnailGenerationWorkflow = new ThumbnailGenerationWorkflow();
 const videoGenerationWorkflow = new VideoGenerationWorkflow();
 const youtubePublishWorkflow = new YoutubePublishWorkflow();
 const genreSelectionRequestSchema = z.object({
@@ -479,39 +474,6 @@ orchestrationRouter.post("/video-generation", async (req, res) => {
   }
 });
 
-orchestrationRouter.post("/thumbnail-generation", async (req, res) => {
-  try {
-    const parsedRequest = thumbnailGenerationInputSchema.safeParse(req.body ?? {});
-    if (!parsedRequest.success) {
-      res.status(400).json({
-        error: "Invalid thumbnail-generation payload",
-        details: parsedRequest.error.flatten(),
-      });
-      return;
-    }
-
-    pipelineRealtimeService.beginStage("thumbnail_generation", "thumbnail generation started");
-    const result = await thumbnailGenerationWorkflow.run(parsedRequest.data);
-    pipelineRealtimeService.completeStage("thumbnail_generation", "thumbnail generated");
-
-    res.status(200).json(result);
-  } catch (error) {
-    pipelineRealtimeService.failStage(
-      "thumbnail_generation",
-      error instanceof Error ? error.message : "Unknown error",
-    );
-    if (isConflictError(error)) {
-      res.status(409).json({
-        error: error.message,
-      });
-      return;
-    }
-
-    res.status(500).json({
-      error: error instanceof Error ? error.message : "Failed to run thumbnail generation",
-    });
-  }
-});
 
 orchestrationRouter.post("/youtube-publish", async (req, res) => {
   try {

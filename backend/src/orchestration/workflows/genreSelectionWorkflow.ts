@@ -31,6 +31,10 @@ const genreSearchQueryResponseSchema = z.object({
   searchQueries: z.array(genreSearchQuerySchema).min(1),
 });
 
+const comprehensiveSearchQueryResponseSchema = z.object({
+  comprehensiveQuery: z.string().trim().min(1),
+});
+
 const genreCandidateResponseSchema = z.object({
   candidateGenres: z.array(z.string().trim().min(1)).min(1).max(3),
 });
@@ -361,11 +365,15 @@ export class GenreSelectionWorkflow {
         null,
         2,
       ),
-      schema: genreSearchQueryResponseSchema,
+      schema: comprehensiveSearchQueryResponseSchema,
       ...(signal ? { signal } : {}),
     });
 
-    const searchQueries = mapSearchQueries(state.candidateGenres, modelResult.searchQueries);
+    // Create a single search query entry for all genres
+    const searchQueries: SearchQuery[] = state.candidateGenres.map((genre) => ({
+      genre,
+      query: modelResult.comprehensiveQuery,
+    }));
 
     return {
       searchQueries,
@@ -378,27 +386,35 @@ export class GenreSelectionWorkflow {
   ): Promise<Partial<GenreSelectionStateType>> {
     workflowControlService.ensureNotTerminated();
 
-    const searchBundles: SearchBundle[] = await Promise.all(
-      state.searchQueries.map(async (searchQuery) => {
-        try {
-          const results = await this.searchService.search(searchQuery.query, mode);
-          return {
-            genre: searchQuery.genre,
-            query: searchQuery.query,
-            results,
-          };
-        } catch (error) {
-          pipelineRealtimeService.appendLog(
-            `genre search exhausted for "${searchQuery.genre}" (${searchQuery.query}): ${toErrorMessage(error)}; continuing with empty results`,
-          );
-          return {
-            genre: searchQuery.genre,
-            query: searchQuery.query,
-            results: [],
-          };
-        }
-      }),
+    // Get unique queries (all will be the same comprehensive query)
+    const uniqueQueries = Array.from(
+      new Set(state.searchQueries.map((sq) => sq.query))
     );
+    
+    // Prepare queries for batch search (deduplicated)
+    const queries = uniqueQueries.map((query) => ({ query, mode }));
+    
+    // Use batch search for efficiency - will make only 1 API call due to caching
+    const batchResults = await this.searchService.batchSearch(queries, 2); // concurrency limit of 2
+    
+    const searchBundles: SearchBundle[] = state.searchQueries.map((searchQuery) => {
+      const results = batchResults.get(searchQuery.query) || [];
+      return {
+        genre: searchQuery.genre,
+        query: searchQuery.query,
+        results,
+      };
+    });
+
+    const searchResultsCount = uniqueQueries.length > 0 
+      ? (batchResults.get(uniqueQueries[0]!) || []).length 
+      : 0;
+    
+    this.logger.info("Search completed", {
+      uniqueQueries: uniqueQueries.length,
+      totalGenres: state.searchQueries.length,
+      searchResultsCount,
+    });
 
     return {
       searchBundles,
@@ -467,22 +483,6 @@ export class GenreSelectionWorkflow {
 
 function normalizeSelectedGenres(genres: string[]): string[] {
   return Array.from(new Set(genres.map((genre) => genre.trim()).filter(Boolean)));
-}
-
-function mapSearchQueries(selectedGenres: string[], searchQueries: SearchQuery[]): SearchQuery[] {
-  const queryByGenre = new Map(
-    searchQueries.map((item) => [item.genre.trim(), item.query.trim()]),
-  );
-
-  const missingGenres = selectedGenres.filter((genre) => !queryByGenre.has(genre));
-  if (missingGenres.length > 0) {
-    throw new Error(`Search queries missing for genres: ${missingGenres.join(", ")}`);
-  }
-
-  return selectedGenres.map((genre) => ({
-    genre,
-    query: queryByGenre.get(genre)!,
-  }));
 }
 
 function mapCandidateGenres(selectedGenres: string[], candidateGenres: string[]): string[] {

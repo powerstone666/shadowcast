@@ -279,27 +279,28 @@ export class ScriptGenerationWorkflow {
     }
 
     this.logger.info("Attempting Tavily research", { queries: state.researchQueries });
-    const researchBundles = await Promise.all(
-      state.researchQueries.map(async (query) => {
-        try {
-          const results = await this.searchService.search(query);
-          this.logger.info(`Tavily search results for "${query}"`, { count: results.length });
-          return {
-            query,
-            results,
-          };
-        } catch (error) {
-          this.logger.warn(`Tavily search failed for "${query}"`, { error: toErrorMessage(error) });
-          pipelineRealtimeService.appendLog(
-            `research search exhausted for "${query}": ${toErrorMessage(error)}; continuing with empty results`,
-          );
-          return {
-            query,
-            results: [],
-          };
-        }
-      }),
-    );
+    
+    // Prepare queries for batch search
+    const queries = state.researchQueries.map((query) => ({ query, mode: "auto" as const }));
+    
+    // Use batch search for efficiency
+    const batchResults = await this.searchService.batchSearch(queries, 2); // concurrency limit of 2
+    
+    const researchBundles = state.researchQueries.map((query) => {
+      const results = batchResults.get(query) || [];
+      if (results.length > 0) {
+        this.logger.info(`Tavily search results for "${query}"`, { count: results.length });
+      } else {
+        this.logger.warn(`Tavily search failed for "${query}" - no results returned`);
+        pipelineRealtimeService.appendLog(
+          `research search exhausted for "${query}": no results returned; continuing with empty results`,
+        );
+      }
+      return {
+        query,
+        results,
+      };
+    });
 
     return {
       researchBundles,

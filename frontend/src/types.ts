@@ -97,7 +97,6 @@ export type PipelineStageKey =
   | 'council_review'
   | 'director_plan'
   | 'video_generation'
-  | 'thumbnail_generation'
   | 'youtube_publish'
 
 export type PipelineLogEntry = {

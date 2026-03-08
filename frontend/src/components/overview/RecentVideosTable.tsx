@@ -17,7 +17,6 @@ function RecentVideosTable({ videos }: { videos: VideoRecord[] }) {
         <table className="min-w-full border-separate border-spacing-y-2 text-left">
           <thead>
             <tr className={`${mutedLabelClass} text-left`}>
-              <th className="px-4 py-2">Thumbnail</th>
               <th className="px-4 py-2">Title</th>
               <th className="px-4 py-2">Genre</th>
               <th className="px-4 py-2">Publish Time</th>
@@ -29,12 +28,7 @@ function RecentVideosTable({ videos }: { videos: VideoRecord[] }) {
           <tbody>
             {videos.map((video) => (
               <tr key={video.key} className="bg-transparent text-[#34271f]">
-                <td className="rounded-l-2xl px-4 py-4">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#765846] font-semibold text-[#fff7ef]">
-                    {video.thumbnail}
-                  </div>
-                </td>
-                <td className="px-4 py-4 font-medium">{video.title}</td>
+                <td className="rounded-l-2xl px-4 py-4 font-medium">{video.title}</td>
                 <td className="px-4 py-4">{video.genre}</td>
                 <td className="px-4 py-4">{video.publishTime}</td>
                 <td className="px-4 py-4">{video.views}</td>
@@ -48,7 +42,7 @@ function RecentVideosTable({ videos }: { videos: VideoRecord[] }) {
             ))}
             {videos.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-sm font-medium text-[#7a7167]">
+                <td colSpan={6} className="px-4 py-8 text-center text-sm font-medium text-[#7a7167]">
                   No uploaded videos available for this channel yet.
                 </td>
               </tr>

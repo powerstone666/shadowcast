@@ -15,9 +15,16 @@ export type SearchResult = z.infer<typeof normalizedSearchItemSchema>;
 
 export type SearchMode = "tavily" | "scrape" | "auto";
 
+type QueryWithMetadata = {
+  query: string;
+  mode?: SearchMode;
+};
+
 export class TavilySearchService {
   private readonly logger = new Logger("tavily-search-service");
   private readonly client = tavily({ apiKey: process.env.TAVILY_API_KEY ?? "" });
+  private readonly searchCache = new Map<string, { results: SearchResult[]; timestamp: number }>();
+  private readonly CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
   constructor(private readonly maxResults = 5) {
     if (!process.env.TAVILY_API_KEY) {
@@ -26,6 +33,13 @@ export class TavilySearchService {
   }
 
   async search(query: string, mode: SearchMode = "auto"): Promise<SearchResult[]> {
+    const cacheKey = `${query}:${mode}`;
+    const cached = this.searchCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < this.CACHE_TTL_MS) {
+      this.logger.info("Returning cached search results", { query, mode, count: cached.results.length });
+      return cached.results;
+    }
+
     if (mode === "scrape") {
       return this.runHtmlScrapeFallback(query);
     }
@@ -54,6 +68,7 @@ export class TavilySearchService {
         count: parsedResults.length,
       });
 
+      this.searchCache.set(cacheKey, { results: parsedResults, timestamp: Date.now() });
       return parsedResults;
     } catch (error) {
       if (mode === "tavily") {
@@ -71,6 +86,59 @@ export class TavilySearchService {
 
       return this.runHtmlScrapeFallback(query);
     }
+  }
+
+  async batchSearch(queries: QueryWithMetadata[], concurrencyLimit = 2): Promise<Map<string, SearchResult[]>> {
+    const results = new Map<string, SearchResult[]>();
+    const queriesToProcess: QueryWithMetadata[] = [];
+
+    // Check cache first
+    for (const { query, mode = "auto" } of queries) {
+      const cacheKey = `${query}:${mode}`;
+      const cached = this.searchCache.get(cacheKey);
+      if (cached && Date.now() - cached.timestamp < this.CACHE_TTL_MS) {
+        this.logger.info("Using cached results for batch query", { query, mode });
+        results.set(query, cached.results);
+      } else {
+        queriesToProcess.push({ query, mode });
+      }
+    }
+
+    if (queriesToProcess.length === 0) {
+      return results;
+    }
+
+    this.logger.info("Processing batch search", {
+      totalQueries: queries.length,
+      cached: queries.length - queriesToProcess.length,
+      toProcess: queriesToProcess.length,
+      concurrencyLimit,
+    });
+
+    // Process remaining queries with concurrency control
+    for (let i = 0; i < queriesToProcess.length; i += concurrencyLimit) {
+      const batch = queriesToProcess.slice(i, i + concurrencyLimit);
+      await Promise.all(
+        batch.map(async ({ query, mode = "auto" }) => {
+          try {
+            const searchResults = await this.search(query, mode);
+            results.set(query, searchResults);
+          } catch (error) {
+            this.logger.warn(`Batch search failed for query: "${query}"`, {
+              error: toErrorMessage(error),
+            });
+            results.set(query, []);
+          }
+        }),
+      );
+    }
+
+    return results;
+  }
+
+  clearCache(): void {
+    this.searchCache.clear();
+    this.logger.info("Search cache cleared");
   }
 
   private async runHtmlScrapeFallback(query: string): Promise<SearchResult[]> {

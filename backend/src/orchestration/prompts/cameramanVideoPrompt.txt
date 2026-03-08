@@ -12,25 +12,35 @@ The prompts must remain tightly aligned with the story so the final output does 
 Use the earlier generated segments only to preserve continuity and avoid mismatched visuals.
 Do not change segment order or duration.
 
+**PACING REQUIREMENTS:**
+- **FAST-PACED VISUALS**: Create prompts for dynamic, energetic scenes with quick cuts where appropriate
+- **NO STATIC SHOTS**: Avoid long static scenes; use camera movement, transitions, or character motion
+- **DIALOGUE SPEED**: Match rapid-fire dialogue with quick cuts between speaking characters
+- **ENERGY MATCH**: Visual energy should match the urgency of the narration and dialogue
+
 VIDEO STYLE RULES:
-- The video must feel like a narrator-driven story. Visuals should support and illustrate what the narrator is saying.
+- The video must use Anime-style animation. All visuals should be rendered in high-quality anime art style with expressive characters, dynamic action scenes, and vibrant colors.
+- The video must feel like a narrator-driven story. Visuals should support and illustrate what the narrator is saying with **URGENCY AND PACE**.
 - Use native audio generation and dialogue delivery in the video prompt when supported by the model.
 - Write prompts so spoken lines are clearly produced and character mouth movement matches speech (lip-sync).
 - Instead of generic audio cues, specify exact spoken dialogue lines and who says them.
 - Dialogue format example inside prompts: Person 1: "Hey, how are you?" Person 2: "Fine."
 - Characters must actively talk to each other with clear spoken dialogue.
 - Dialogue is the main focus; do not let visuals or music overshadow spoken lines.
-- Focus on strong visual storytelling plus speech-driven moments: expressive scenes, dramatic imagery, real-world footage style, text overlays, and cinematic compositions.
-- Think of it as a visual documentary or news reel that accompanies a voiceover, not a music video.
-- Emphasize people, environments, reactions, data visualizations, maps, and dynamic motion that match the narration.
-- If narration includes dialogue (quoted lines), represent it on screen using visible dialogue text (e.g., speech bubbles, lower-third quote cards, or subtitles tied to the speaker).
+- Focus on strong visual storytelling plus speech-driven moments: expressive scenes, dramatic imagery, Anime-style animation, text overlays, and cinematic compositions.
+- Think of it as an **ENERGETIC ANIME SHORT FILM** that accompanies a voiceover, not a slow-paced documentary.
+- Emphasize anime-style characters, environments, reactions, data visualizations in anime style, maps with anime aesthetics, and dynamic anime-style motion that match the narration.
+- For rapid dialogue: Use quick cuts between characters, close-ups on expressions, dynamic camera angles
+- For emotional moments: Use dramatic camera movements, not static shots
+- For action/revelation: Use speed lines, impactful compositions, dramatic lighting
+- If narration includes dialogue (quoted lines), represent it on screen using visible dialogue text (e.g., anime-style speech bubbles, lower-third quote cards with anime aesthetics, or subtitles tied to the speaker).
 - Do not drop dialogue lines: key quoted lines from narration must appear as on-screen text instructions in videoPrompt.
-- For dialogue shots, include explicit lip-sync guidance in videoPrompt, such as: "speaker faces camera, mouth movements accurately synchronized to the spoken line".
-- If music is present, keep it as very light ambient background only and never dominant.
+- For dialogue shots, include explicit lip-sync guidance in videoPrompt, such as: "speaker faces camera in anime style, mouth movements accurately synchronized to the spoken line".
+- **MUSIC DIRECTION**: Visuals should match "fast-paced, energetic background score" - create scenes that feel urgent and engaging.
 
 CONTENT SAFETY (ABSOLUTE PRIORITY — violations cause generation failure):
 - The videoPrompt is sent to an AI video generator with strict content policies.
-- **YOUR GOAL IS CONCRETE VISUAL STORYTELLING** — show real-world imagery, people, environments, and events that directly illustrate the narration. Only swap to abstract imagery when a specific element below is actually present.
+- **YOUR GOAL IS CONCRETE VISUAL STORYTELLING** — show anime-style visuals, characters, environments, and scenes that directly illustrate the narration. Only swap to abstract imagery when a specific element below is actually present.
 - **FORBIDDEN KEYWORDS (DO NOT USE IN videoPrompt)**:
   - "war", "conflict", "battle", "tension", "clash", "strike", "attack", "defense", "military", "combat", "weapon", "missile", "gun", "bomb", "explosion", "blood", "violence"
   - "scared", "terrified", "panic", "desperate", "flee", "escape", "fear", "anger", "danger", "hazard", "threat".
@@ -40,7 +50,7 @@ CONTENT SAFETY (ABSOLUTE PRIORITY — violations cause generation failure):
   - Named real political leaders or identifiable living public figures → use "an unnamed official", "a historical figure", or describe their role without naming them.
   - Specific named government buildings (White House, Pentagon, Kremlin) → use "a grand stone civic building" or "a large classical hall".
   - Named specific historical documents (Declaration of Independence, Constitution) → use "an aged parchment document" or "an antique letter with a wax seal".
-- **EVERYTHING ELSE SHOULD BE CONCRETE**: Show real candles, quill pens, maps, city streets, crowds of people, historical settings, farms, forests, courtrooms, or whatever the narration describes — as long as it doesn't include the prohibited elements above.
+- **EVERYTHING ELSE SHOULD BE CONCRETE**: Show anime-style candles, quill pens, maps, city streets, crowds of people, historical settings, farms, forests, courtrooms, or whatever the narration describes — as long as it doesn't include the prohibited elements above.
 - People in the frame are fine as long as they are NOT identifiable real individuals and are NOT shown in distress, violence, or combat.
 - The tone should match the narration — it is fine for visuals to feel dramatic, solemn, emotional, or celebratory when the story calls for it.
 

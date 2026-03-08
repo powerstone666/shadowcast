@@ -15,7 +15,7 @@ import {
 } from "./scriptGenerationWorkflow.js";
 
 const MAX_SEGMENT_DURATION_SEC = 15;
-const MAX_TOTAL_DURATION_SEC = 60;
+const MAX_TOTAL_DURATION_SEC = 120;
 
 export const directorSegmentSchema = z.object({
   order: z.number().int().min(1),

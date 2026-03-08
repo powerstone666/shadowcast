@@ -187,9 +187,9 @@ export class ThumbnailGenerationWorkflow {
 
 function buildThumbnailPrompt(input: { title: string; summary: string }): string {
   return [
-    "Create a cinematic YouTube thumbnail with a strong focal subject and high visual contrast.",
+    "Create a cinematic YouTube thumbnail in Anime-style animation with a strong focal subject and high visual contrast.",
     `Video title: ${input.title}`,
     `Story summary: ${input.summary}`,
-    "Requirements: dramatic composition, expressive subject, bold lighting, clean background separation, no text overlay, thumbnail-safe framing, 16:9 composition.",
+    "Requirements: dramatic anime-style composition, expressive anime character, bold lighting, clean background separation, no text overlay, thumbnail-safe framing, 16:9 composition.",
   ].join(" ");
 }
