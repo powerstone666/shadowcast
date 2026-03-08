@@ -49,43 +49,48 @@ function CurrentPipelineRun({
               : "Not started";
 
   return (
-    <article className={`${surfaceClass} px-8 py-7`}>
+    <article className={`${surfaceClass} px-4 py-6 md:px-8 md:py-7`}>
       {isNoteModalOpen &&
         createPortal(
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/5 p-4 animate-in fade-in duration-200">
-            <div className="w-120 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.06)] rounded-4xl bg-white border border-[#f0e9df] transform transition-all animate-in zoom-in-95 duration-200">
-              <h3 className="text-xl font-bold text-[#3b2d21] mb-2">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 p-4 animate-in fade-in duration-200">
+            <div className="w-full max-w-md md:w-120 p-4 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.06)] rounded-2xl md:rounded-4xl bg-white border border-[#f0e9df] transform transition-all animate-in zoom-in-95 duration-200 mx-4">
+              <h3 className="text-lg md:text-xl font-bold text-[#3b2d21] mb-2">
                 Workflow Note
               </h3>
-              <p className="text-[13px] text-[#7a7167] mb-6 leading-relaxed">
+              <p className="text-xs md:text-[13px] text-[#7a7167] mb-4 md:mb-6 leading-relaxed">
                 Add a note to influence the genre and topic selection. Leave blank
                 to let the AI decide entirely.
               </p>
-              <div className="relative mb-6">
+              <div className="relative mb-4 md:mb-6">
                 <textarea
-                  className="w-full resize-none rounded-2xl border border-[#e6decb] bg-transparent p-4 text-[14px] text-[#3b2d21] placeholder-[#a99c8f] focus:border-[#cc7440] focus:outline-none focus:ring-1 focus:ring-[#cc7440] min-h-35 transition-all duration-200"
+                  className="w-full resize-none rounded-xl md:rounded-2xl border border-[#e6decb] bg-transparent p-3 md:p-4 text-sm md:text-[14px] text-[#3b2d21] placeholder-[#a99c8f] focus:border-[#cc7440] focus:outline-none focus:ring-1 focus:ring-[#cc7440] min-h-24 md:min-h-35 transition-all duration-200"
                   placeholder="e.g. A funny piece about black hole theory..."
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                 />
               </div>
-              <div className="flex justify-end gap-3">
+              <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
                 <button
                   type="button"
                   onClick={() => {
                     setIsNoteModalOpen(false);
                     setNote("");
                   }}
-                  className="rounded-full px-6 py-2.5 text-sm font-semibold border border-[#e6decb] bg-white text-[#b65a33] hover:bg-[#fdfbf9] transition-all duration-200"
+                  className="rounded-full px-4 py-2.5 text-sm font-semibold border border-[#e6decb] bg-white text-[#b65a33] hover:bg-[#fdfbf9] transition-all duration-200 w-full sm:w-auto"
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
-                  onClick={() => setIsNoteModalOpen(false)}
-                  className="rounded-full px-6 py-2.5 text-sm font-semibold bg-[#cc7440] text-white hover:bg-[#b65a33] shadow-md shadow-[#cc7440]/20 transition-all duration-200"
+                  onClick={() => {
+                    setIsNoteModalOpen(false);
+                    if (note) {
+                      onRunWorkflow(note);
+                    }
+                  }}
+                  className="rounded-full px-4 py-2.5 text-sm font-semibold bg-[#cc7440] text-white hover:bg-[#b65a33] shadow-md shadow-[#cc7440]/20 transition-all duration-200 w-full sm:w-auto"
                 >
-                  Save Note
+                  Save & Run
                 </button>
               </div>
             </div>
@@ -93,13 +98,13 @@ function CurrentPipelineRun({
           document.body,
         )}
 
-      <div className="flex items-center justify-between gap-4">
-        <h2 className={sectionTitleClass}>Current Pipeline Run</h2>
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <h2 className={`${sectionTitleClass} text-2xl md:text-[2rem]`}>Current Pipeline Run</h2>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
           <button
             type="button"
             onClick={() => setIsNoteModalOpen(true)}
-            className="rounded-full px-5 py-3 text-sm font-semibold border border-[rgba(204,116,64,0.2)] bg-[rgba(255,255,255,0.6)] text-[#cc7440] hover:bg-white transition-colors"
+            className="rounded-full px-4 py-3 text-sm font-semibold border border-[rgba(204,116,64,0.2)] bg-[rgba(255,255,255,0.6)] text-[#cc7440] hover:bg-white transition-colors min-h-[44px]"
           >
             {note ? "Edit Note" : "Add Note"}
           </button>
@@ -107,7 +112,7 @@ function CurrentPipelineRun({
             type="button"
             onClick={() => onRunWorkflow(note)}
             disabled={!canRunWorkflow}
-            className={`rounded-full px-5 py-3 text-sm font-semibold ${
+            className={`rounded-full px-4 py-3 text-sm font-semibold min-h-[44px] ${
               canRunWorkflow
                 ? "bg-[#cc7440] text-[#fff7ef] hover:bg-[#b65a33] transition-colors"
                 : "bg-[rgba(204,116,64,0.18)] text-[#fff7ef]/70"
@@ -120,18 +125,18 @@ function CurrentPipelineRun({
               type="button"
               onClick={onTerminateWorkflow}
               disabled={!canTerminateWorkflow}
-              className={`rounded-full px-5 py-3 text-sm font-semibold ${
+              className={`rounded-full px-4 py-3 text-sm font-semibold min-h-[44px] ${
                 canTerminateWorkflow
                   ? "border border-[rgba(204,116,64,0.28)] bg-white text-[#b65a33]"
                   : "border border-[rgba(182,90,51,0.14)] bg-[rgba(255,255,255,0.55)] text-[#b65a33]/60"
               }`}
             >
-              {isTerminatingWorkflow ? "Terminating..." : "Terminate Workflow"}
+              {isTerminatingWorkflow ? "Terminating..." : "Terminate"}
             </button>
           ) : null}
         </div>
       </div>
-      <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {pipelineStages.map((stage, index) => {
           const state = completedStageKeys.has(stage.key)
             ? "complete"
@@ -162,7 +167,7 @@ function CurrentPipelineRun({
       <div className="mt-6">
         <div className="h-3 overflow-hidden rounded-full bg-[rgba(88,66,45,0.08)]">
           <div
-            className="h-full rounded-full bg-[#cc7440]"
+            className="h-full rounded-full bg-[#cc7440] transition-all duration-500"
             style={{ width: progressWidth }}
           />
         </div>

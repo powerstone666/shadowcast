@@ -41,12 +41,12 @@ function OverviewSection() {
   } satisfies OverviewPerformance)
 
   return (
-    <section className="flex flex-col gap-6 bg-transparent">
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
+    <section className="flex flex-col gap-4 md:gap-6 bg-transparent">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {(isLoading ? loadingMetricCards : metricCards).map((metric) => (
-          <article key={metric.title} className={`${surfaceClass} px-6 py-6`}>
-            <p className="text-sm font-medium text-[#7a7167]">{metric.title}</p>
-            <p className="mt-3 text-[1.65rem] font-semibold tracking-[-0.03em] text-[#22211f]">{metric.value}</p>
+          <article key={metric.title} className={`${surfaceClass} px-4 py-4 md:px-6 md:py-6`}>
+            <p className="text-xs md:text-sm font-medium text-[#7a7167]">{metric.title}</p>
+            <p className="mt-2 md:mt-3 text-xl md:text-[1.65rem] font-semibold tracking-[-0.03em] text-[#22211f]">{metric.value}</p>
           </article>
         ))}
       </div>
@@ -59,7 +59,7 @@ function OverviewSection() {
         />
       </section>
 
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4 md:gap-6">
         <RecentVideosTable videos={recentVideos} />
         <PerformancePanel performance={performance} />
       </div>

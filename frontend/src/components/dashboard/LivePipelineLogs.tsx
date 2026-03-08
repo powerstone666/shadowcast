@@ -95,13 +95,13 @@ function LivePipelineLogs({
 
   return (
     <article className={surfaceClass}>
-      <div className="flex items-center justify-between gap-4 border-b border-[rgba(88,66,45,0.09)] px-8 py-6">
-        <h2 className={sectionTitleClass}>Live Pipeline Logs</h2>
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b border-[rgba(88,66,45,0.09)] px-4 py-4 md:px-8 md:py-6">
+        <h2 className={`${sectionTitleClass} text-2xl md:text-[2rem]`}>Live Pipeline Logs</h2>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <button
             type="button"
             onClick={onTestConnection}
-            className="rounded-full bg-[#cc7440] px-5 py-3 text-sm font-semibold text-[#fff7ef]"
+            className="rounded-full bg-[#cc7440] px-4 py-3 text-sm font-semibold text-[#fff7ef] min-h-[44px]"
           >
             {isConnected ? 'Test Connection' : 'Test Connection'}
           </button>
@@ -112,11 +112,11 @@ function LivePipelineLogs({
               onClick={() => {
                 setIsDropdownOpen((currentValue) => !currentValue)
               }}
-              className="flex min-w-[220px] items-center justify-between rounded-full border border-[rgba(118,88,70,0.14)] bg-white px-5 py-3 text-sm font-medium text-[#765846] shadow-[0_10px_24px_rgba(82,58,43,0.06)]"
+              className="flex min-w-full sm:min-w-[220px] items-center justify-between rounded-full border border-[rgba(118,88,70,0.14)] bg-white px-4 py-3 text-sm font-medium text-[#765846] shadow-[0_10px_24px_rgba(82,58,43,0.06)] min-h-[44px]"
             >
-              <span>{formatTestSelectionLabel(testSelection)}</span>
+              <span className="truncate text-xs sm:text-sm">{formatTestSelectionLabel(testSelection)}</span>
               <span
-                className={`text-[#8b6a56] transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
+                className={`text-[#8b6a56] transition-transform ml-2 ${isDropdownOpen ? 'rotate-180' : ''}`}
                 aria-hidden="true"
               >
                 ˅
@@ -127,11 +127,12 @@ function LivePipelineLogs({
               createPortal(
                 <div
                   ref={dropdownMenuRef}
-                  className="fixed z-[9999] max-h-[320px] overflow-y-auto rounded-3xl border border-[rgba(118,88,70,0.14)] bg-white shadow-[0_20px_40px_rgba(82,58,43,0.14)]"
+                  className="fixed z-[9999] max-h-[320px] overflow-y-auto rounded-2xl md:rounded-3xl border border-[rgba(118,88,70,0.14)] bg-white shadow-[0_20px_40px_rgba(82,58,43,0.14)]"
                   style={{
                     top: dropdownPosition.top,
                     right: dropdownPosition.right,
-                    minWidth: dropdownPosition.width,
+                    minWidth: Math.max(dropdownPosition.width, 200),
+                    maxWidth: 'calc(100vw - 2rem)',
                   }}
                 >
                   {testOptions.map((option) => {
@@ -145,14 +146,14 @@ function LivePipelineLogs({
                           onTestSelectionChange(option.value)
                           setIsDropdownOpen(false)
                         }}
-                        className={`flex w-full items-center justify-between px-5 py-4 text-left text-sm font-medium ${
+                        className={`flex w-full items-center justify-between px-4 py-3 md:px-5 md:py-4 text-left text-xs sm:text-sm font-medium ${
                           isActive
                             ? 'bg-[rgba(204,116,64,0.1)] text-[#cc7440]'
                             : 'text-[#765846] hover:bg-[rgba(118,88,70,0.05)]'
                         }`}
                       >
-                        <span>{option.label}</span>
-                        {isActive ? <span className="text-[#cc7440]">•</span> : null}
+                        <span className="truncate">{option.label}</span>
+                        {isActive ? <span className="text-[#cc7440] ml-2">•</span> : null}
                       </button>
                     )
                   })}
@@ -163,12 +164,12 @@ function LivePipelineLogs({
           </div>
         </div>
       </div>
-      <div className="px-6 py-6">
-        <div className="max-h-[420px] overflow-auto rounded-3xl border border-[rgba(88,66,45,0.08)] bg-transparent px-5 py-5 font-mono text-sm leading-7 text-[#765846]">
+      <div className="px-3 py-4 md:px-6 md:py-6">
+        <div className="max-h-[320px] md:max-h-[420px] overflow-auto rounded-xl md:rounded-3xl border border-[rgba(88,66,45,0.08)] bg-transparent px-3 py-3 md:px-5 md:py-5 font-mono text-xs md:text-sm leading-6 md:leading-7 text-[#765846]">
           {pipelineState.logs.length > 0 ? (
             pipelineState.logs.map((logLine) => (
-              <div key={logLine.id}>
-                [{formatLogTime(logLine.timestamp)}] {logLine.message}
+              <div key={logLine.id} className="break-words">
+                <span className="text-[#8b6a56]">[{formatLogTime(logLine.timestamp)}]</span> {logLine.message}
               </div>
             ))
           ) : (

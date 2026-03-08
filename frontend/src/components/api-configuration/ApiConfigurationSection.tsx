@@ -5,7 +5,7 @@ import type { AgentRoleConfig, YoutubeOAuthStatus } from '../../types'
 import { mutedLabelClass, sectionTitleClass, surfaceClass } from '../../ui'
 
 const baseInputClass =
-  'w-full rounded-2xl border border-[rgba(118,88,70,0.14)] bg-white px-4 py-3 text-[#2b2019] outline-none placeholder:text-[#a09589]'
+  'w-full rounded-2xl border border-[rgba(118,88,70,0.14)] bg-white px-4 py-3 text-[#2b2019] outline-none placeholder:text-[#a09589] text-sm md:text-base'
 
 const councilExperts = [
   { id: 'research-expert', label: 'Research Expert' },
@@ -154,26 +154,26 @@ function ApiConfigurationSection() {
       ) : null}
 
       <article className={`${surfaceClass} overflow-hidden`}>
-        <div className="border-b border-[rgba(88,66,45,0.09)] px-8 py-6">
-          <h2 className={sectionTitleClass}>Connect OAuth</h2>
+        <div className="border-b border-[rgba(88,66,45,0.09)] px-4 py-4 md:px-8 md:py-6">
+          <h2 className={`${sectionTitleClass} text-2xl md:text-[2rem]`}>Connect OAuth</h2>
         </div>
-        <div className="grid gap-4 px-8 py-8 md:grid-cols-3">
+        <div className="grid gap-3 px-4 py-4 md:gap-4 md:px-8 md:py-8 md:grid-cols-3">
           {isLoadingOauthStatus
             ? Array.from({ length: 5 }, (_, index) => <InfoCardSkeleton key={`oauth-skeleton-${index}`} />)
             : oauthDetails.map(([label, value]) => (
-                <div key={label} className="rounded-2xl border border-[rgba(118,88,70,0.1)] bg-white px-5 py-4">
-                  <p className={mutedLabelClass}>{label}</p>
-                  <p className="mt-2 text-base font-medium text-[#765846]">{value}</p>
+                <div key={label} className="rounded-xl md:rounded-2xl border border-[rgba(118,88,70,0.1)] bg-white px-4 py-3 md:px-5 md:py-4">
+                  <p className={`${mutedLabelClass} text-xs md:text-sm`}>{label}</p>
+                  <p className="mt-1 md:mt-2 text-sm md:text-base font-medium text-[#765846] break-words">{value}</p>
                 </div>
               ))}
         </div>
-        <div className="flex flex-wrap gap-3 px-8 pb-8">
+        <div className="flex flex-col sm:flex-row gap-3 px-4 pb-4 md:px-8 md:pb-8">
           <button
             type="button"
             onClick={() => {
               window.location.href = getYoutubeOAuthStartUrl()
             }}
-            className="rounded-full bg-[#cc7440] px-5 py-3 font-semibold text-[#fff7ef]"
+            className="rounded-full bg-[#cc7440] px-4 py-3 md:px-5 md:py-3 font-semibold text-[#fff7ef] text-sm md:text-base min-h-[44px]"
           >
             Update OAuth
           </button>
@@ -183,7 +183,7 @@ function ApiConfigurationSection() {
               void handleRefreshOauth()
             }}
             disabled={isRefreshingOauth || isLoadingOauthStatus}
-            className="rounded-full border border-[rgba(118,88,70,0.12)] bg-white px-5 py-3 font-semibold text-[#765846]"
+            className="rounded-full border border-[rgba(118,88,70,0.12)] bg-white px-4 py-3 md:px-5 md:py-3 font-semibold text-[#765846] text-sm md:text-base min-h-[44px]"
           >
             {isRefreshingOauth ? 'Refreshing...' : 'Refresh Status'}
           </button>
@@ -210,10 +210,10 @@ function ApiConfigurationSection() {
       />
 
       <article className={`${surfaceClass} overflow-hidden`}>
-        <div className="border-b border-[rgba(88,66,45,0.09)] px-8 py-6">
-          <h2 className={sectionTitleClass}>Council Of Experts</h2>
+        <div className="border-b border-[rgba(88,66,45,0.09)] px-4 py-4 md:px-8 md:py-6">
+          <h2 className={`${sectionTitleClass} text-2xl md:text-[2rem]`}>Council Of Experts</h2>
         </div>
-        <div className="grid gap-4 px-8 py-8">
+        <div className="grid gap-4 px-4 py-4 md:px-8 md:py-8">
           {councilExperts.map((expert) => (
             <RoleConfigFields
               key={expert.id}
@@ -329,11 +329,11 @@ function RoleConfigCard({
 }) {
   return (
     <article className={`${surfaceClass} overflow-hidden`}>
-      <div className="border-b border-[rgba(88,66,45,0.09)] px-8 py-6">
-        <h2 className={sectionTitleClass}>{title}</h2>
-        {note ? <p className={`${mutedLabelClass} mt-2 max-w-3xl`}>{note}</p> : null}
+      <div className="border-b border-[rgba(88,66,45,0.09)] px-4 py-4 md:px-8 md:py-6">
+        <h2 className={`${sectionTitleClass} text-2xl md:text-[2rem]`}>{title}</h2>
+        {note ? <p className={`${mutedLabelClass} mt-2 max-w-3xl text-sm md:text-base`}>{note}</p> : null}
       </div>
-      <div className="px-8 py-8">
+      <div className="px-4 py-4 md:px-8 md:py-8">
         <RoleConfigFields
           roleKey={roleKey}
           config={config}
@@ -374,16 +374,16 @@ function RoleConfigFields({
   onSave: (roleKey: string) => void
 }) {
   return (
-    <div className="rounded-2xl border border-[rgba(118,88,70,0.1)] bg-white px-5 py-5">
-      {title ? <h3 className="text-lg font-semibold text-[#765846]">{title}</h3> : null}
+    <div className="rounded-xl md:rounded-2xl border border-[rgba(118,88,70,0.1)] bg-white px-4 py-4 md:px-5 md:py-5">
+      {title ? <h3 className="text-base md:text-lg font-semibold text-[#765846]">{title}</h3> : null}
       {isLoading ? (
-        <div className={`grid gap-4 ${title ? 'mt-4' : ''} md:grid-cols-3`}>
+        <div className={`grid gap-3 md:gap-4 ${title ? 'mt-3 md:mt-4' : ''} md:grid-cols-3`}>
           <FieldSkeleton />
           <FieldSkeleton />
           <FieldSkeleton />
         </div>
       ) : (
-        <div className={`grid gap-4 ${title ? 'mt-4' : ''} md:grid-cols-3`}>
+        <div className={`grid gap-3 md:gap-4 ${title ? 'mt-3 md:mt-4' : ''} md:grid-cols-3`}>
           <ConfigField
             label="API URL"
             placeholder="https://api.provider.com/v1"
@@ -412,7 +412,7 @@ function RoleConfigFields({
         </div>
       )}
       {title ? (
-        <div className="mt-5">
+        <div className="mt-4 md:mt-5">
           <UpdateButton
             label={isSaving ? 'Saving...' : `Update ${title}`}
             onClick={() => {
@@ -440,7 +440,7 @@ function UpdateButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="rounded-full bg-[#cc7440] px-5 py-3 font-semibold text-[#fff7ef] disabled:cursor-not-allowed disabled:opacity-60"
+      className="rounded-full bg-[#cc7440] px-4 py-3 md:px-5 md:py-3 font-semibold text-[#fff7ef] disabled:cursor-not-allowed disabled:opacity-60 text-sm md:text-base min-h-[44px]"
     >
       {label}
     </button>

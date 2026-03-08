@@ -489,10 +489,25 @@ function mapCandidateGenres(selectedGenres: string[], candidateGenres: string[])
   const normalizedCandidates = Array.from(
     new Set(candidateGenres.map((genre) => genre.trim()).filter(Boolean)),
   );
-  const validCandidates = normalizedCandidates.filter((genre) => selectedGenres.includes(genre));
+  
+  // Create a mapping of lowercase genre names to their original case
+  const selectedGenreMap = new Map<string, string>();
+  selectedGenres.forEach(genre => {
+    selectedGenreMap.set(genre.toLowerCase(), genre);
+  });
+  
+  // Try exact match first
+  let validCandidates = normalizedCandidates.filter((genre) => selectedGenres.includes(genre));
+  
+  // If no exact matches, try case-insensitive match
+  if (validCandidates.length === 0) {
+    validCandidates = normalizedCandidates.filter((genre) => 
+      selectedGenreMap.has(genre.toLowerCase())
+    ).map(genre => selectedGenreMap.get(genre.toLowerCase())!);
+  }
 
   if (validCandidates.length === 0) {
-    throw new Error("Genre shortlist did not contain any configured genres");
+    throw new Error(`Genre shortlist did not contain any configured genres. Configured: ${selectedGenres.join(", ")}, Candidates: ${normalizedCandidates.join(", ")}`);
   }
 
   return validCandidates.slice(0, 3);
