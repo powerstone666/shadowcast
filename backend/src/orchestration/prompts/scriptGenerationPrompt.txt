@@ -89,13 +89,15 @@ Description requirements:
 Story requirements:
 - Provide a practical short-form script or structured outline suitable for voiceover.
 - **FAST PACING**: Keep dialogue rapid-fire. Characters should speak immediately after each other, no pauses.
-- **ENGAGING DIALOGUE**: Make dialogue sound like real people talking - urgent, emotional, argumentative, or passionate. Avoid monotone exposition.
-- **DIALOGUE-FIRST**: Every key story point should be revealed through dialogue, not narration. Show don't tell through character conversations.
-- Include at least 3-4 short dialogue exchanges (back-and-forth conversations), not just single lines.
-- Dialogue format example: 
-  Person 1: "You can't be serious!" 
-  Person 2: "Dead serious. And here's why..."
-- Characters must actively talk to each other with clear spoken dialogue that reveals personality and conflict.
+- **INCIDENT-EMBEDDED DIALOGUE**: Dialogue must happen DURING the incident or confrontation — not as a separate conversation scene. Characters speak while the event is unfolding around them. Think: sharp lines traded mid-standoff, mid-chase, mid-revelation, mid-conflict — not two people standing still and talking.
+- **KINETIC DIALOGUE**: Every dialogue exchange must have a clear action context. Where are they? What is happening at that exact moment? What forces them to speak?
+- **ENGAGING DIALOGUE**: Lines should sound urgent, emotional, and high-stakes — like words forced out under pressure, not scripted conversation.
+- Include at least 3-4 short dialogue exchanges embedded within active scenes or turning points.
+- Dialogue format example (with action context):
+  [Mid-confrontation, both characters facing off]
+  Person 1: "You really think you can stop this?"
+  Person 2: "I already have."
+- Characters must actively talk to each other with clear spoken dialogue that reveals personality and drives the incident forward.
 - Write dialogue with lip-sync in mind (clean, speakable lines that match visible mouth movement).
 - **BACKGROUND MUSIC**: Mention only as "fast-paced, energetic background score" or "upbeat, driving soundtrack" - never "light ambient". Music should match the urgency of the scene.
 - **NO NARRATOR PAUSES**: The narrator should speak continuously, flowing directly into dialogue without breaks.

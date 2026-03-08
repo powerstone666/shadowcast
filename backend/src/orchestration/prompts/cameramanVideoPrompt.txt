@@ -63,10 +63,11 @@ VIDEO STYLE RULES:
 - Write prompts so spoken lines are clearly produced and character mouth movement matches speech (lip-sync).
 - Instead of generic audio cues, specify exact spoken dialogue lines and who says them.
 - Dialogue format example inside prompts: Person 1: "Hey, how are you?" Person 2: "Fine."
-- Characters must actively talk to each other with clear spoken dialogue.
-- Dialogue is the main focus; do not let visuals or music overshadow spoken lines.
+- Characters must actively talk to each other with clear spoken dialogue — but dialogue must happen DURING the incident, not as a static conversation. Stage lines mid-confrontation, mid-standoff, mid-chase, mid-revelation.
+- **NO STATIC DIALOGUE SCENES**: Never show two characters standing still and talking. If dialogue is happening, something is also happening around them — a standoff, a pursuit, a moment of crisis, an intense face-to-face under pressure.
+- Dialogue and action are simultaneous: the character speaks WHILE the scene is in motion. Use close-ups on the speaker's face during a dynamic moment, then cut back to the wider kinetic scene.
 - Focus on strong visual storytelling plus speech-driven moments: expressive scenes, dramatic imagery, Anime-style animation, text overlays, and cinematic compositions.
-- Think of it as an **ENERGETIC ANIME SHORT FILM** that accompanies a voiceover, not a slow-paced documentary.
+- Think of it as an **INTENSE ANIME ACTION FILM** — dialogue is sharp and clipped, delivered mid-incident, not as stand-alone conversation.
 - Emphasize anime-style characters, environments, reactions, data visualizations in anime style, maps with anime aesthetics, and dynamic anime-style motion that match the narration.
 - For rapid dialogue: Use quick cuts between characters, close-ups on expressions, dynamic camera angles
 - For emotional moments: Use dramatic camera movements, not static shots

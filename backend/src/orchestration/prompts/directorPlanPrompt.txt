@@ -91,8 +91,9 @@ VISUAL STYLE RULES:
 - All visuals must use Anime-style animation. The visualDirection should describe anime-style scenes, characters, environments, and cinematic compositions.
 - The visualDirection must describe narrator-driven visual storytelling: scenes, imagery, text overlays, maps, people, and cinematic compositions, all rendered in anime art style.
 - Plan visualDirection for native audio-capable generation when available: include where spoken dialogue happens and who speaks, with anime-style character animations.
-- For dialogue beats, describe lip-sync friendly staging (clear face visibility, speaker framing, mouth visibility) in anime style.
-- Think anime short film visuals that support what the narrator is saying, including direct spoken lines with anime-style character animations.
+- For dialogue beats, stage the conversation DURING the incident — characters speak mid-confrontation, mid-standoff, mid-revelation. Never place dialogue in a static, neutral setting if the scene has action around it. Show where they are and what is happening as they speak.
+- Lip-sync staging must still be preserved (clear face visibility, mouth visible), but frame it within the kinetic scene — close-up on face during a standoff, cut to speaker mid-movement, reaction shot while the event unfolds.
+- Think intense anime short film action — dialogue lines dropped in the middle of a charging scene, a face-to-face power moment, a critical turning point — not two characters standing still having a conversation.
 - Music direction must be fast-paced and energetic, matching the urgency of the narration. Never slow or ambient.
 
 CONTENT SAFETY (ABSOLUTE PRIORITY — violations cause generation failure):
