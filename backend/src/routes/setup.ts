@@ -3,10 +3,12 @@ import { z } from "zod";
 
 import { AgentConfigService } from "../services/agentConfigService.js";
 import { GenreConfigService } from "../services/genreConfigService.js";
+import { UserPreferencesService } from "../services/userPreferencesService.js";
 
 const setupRouter = Router();
 const agentConfigService = new AgentConfigService();
 const genreConfigService = new GenreConfigService();
+const userPreferencesService = new UserPreferencesService();
 const agentConfigPayloadSchema = z.object({
   apiUrl: z.string().min(1),
   apiKey: z.string().min(1),
@@ -128,6 +130,40 @@ setupRouter.put("/genres", async (req, res) => {
   } catch (error) {
     res.status(500).json({
       error: "Failed to save genre pool",
+      details: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
+
+// Audio language preferences routes
+setupRouter.get("/audio-language", async (_req, res) => {
+  try {
+    const languagePref = await userPreferencesService.getAudioLanguage();
+    res.status(200).json(languagePref);
+  } catch (error) {
+    res.status(500).json({
+      error: "Failed to load audio language preference",
+      details: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
+
+setupRouter.put("/audio-language", async (req, res) => {
+  try {
+    const { language } = req.body as { language?: string };
+
+    if (!language || !["english", "hindi"].includes(language)) {
+      res.status(400).json({
+        error: "Language must be either 'english' or 'hindi'",
+      });
+      return;
+    }
+
+    const languagePref = await userPreferencesService.saveAudioLanguage(language as "english" | "hindi");
+    res.status(200).json(languagePref);
+  } catch (error) {
+    res.status(500).json({
+      error: "Failed to save audio language preference",
       details: error instanceof Error ? error.message : "Unknown error",
     });
   }

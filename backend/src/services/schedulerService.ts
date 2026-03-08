@@ -2,6 +2,7 @@ import cron from "node-cron";
 import { Logger } from "../utils/commonUtils.js";
 import { workflowControlService } from "./workflowControlService.js";
 import { pipelineRealtimeService } from "./pipelineRealtimeService.js";
+import { UserPreferencesService } from "./userPreferencesService.js";
 import { GenreSelectionWorkflow } from "../orchestration/workflows/genreSelectionWorkflow.js";
 import { ScriptGenerationWorkflow } from "../orchestration/workflows/scriptGenerationWorkflow.js";
 import { CouncilReviewWorkflow } from "../orchestration/workflows/councilReviewWorkflow.js";
@@ -19,9 +20,11 @@ const logger = new Logger("scheduler");
 const SCHEDULE_SLOTS = [
   { cron: "0 7 * * *",  label: "morning (07:00)"  },
   { cron: "0 12 * * *", label: "lunch (12:00)"    },
-  { cron: "0 19 * * *", label: "evening (19:00)"  },
+  {cron: "0  17 * * *",label:  "evening (17:00)"  },
+  { cron: "0 20 * * *", label: "evening (20:00)"  },
 ];
 
+const userPreferencesService = new UserPreferencesService();
 const genreSelectionWorkflow  = new GenreSelectionWorkflow();
 const scriptGenerationWorkflow = new ScriptGenerationWorkflow();
 const councilReviewWorkflow    = new CouncilReviewWorkflow();
@@ -42,8 +45,12 @@ async function runScheduledPipeline(): Promise<void> {
   logger.info("Scheduled pipeline run started", { runId: runContext.runId });
 
   try {
+    // Get audio language preference
+    const languagePref = await userPreferencesService.getAudioLanguage();
+    const userPreference = `audio language: ${languagePref.language}`;
+    
     pipelineRealtimeService.beginStage("genre_selection", "genre selection started");
-    const genreSelectionResult = await genreSelectionWorkflow.run({ userPreference: undefined });
+    const genreSelectionResult = await genreSelectionWorkflow.run({ userPreference });
     workflowControlService.ensureNotTerminated();
     pipelineRealtimeService.completeStage(
       "genre_selection",
@@ -55,6 +62,7 @@ async function runScheduledPipeline(): Promise<void> {
       genre: genreSelectionResult.selectedGenre,
       topic: genreSelectionResult.topic,
       title: genreSelectionResult.title,
+      userPreference,
     });
     workflowControlService.ensureNotTerminated();
     pipelineRealtimeService.completeStage("script_generation", "script generated");

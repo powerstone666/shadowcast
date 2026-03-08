@@ -16,7 +16,6 @@ import {
 
 const MAX_SEGMENT_DURATION_SEC = 15;
 const MAX_TOTAL_DURATION_SEC = 120;
-
 export const directorSegmentSchema = z.object({
   order: z.number().int().min(1),
   durationSec: z.number().positive().max(MAX_SEGMENT_DURATION_SEC),
@@ -158,35 +157,75 @@ export class DirectorPlanWorkflow {
 
     this.logger.info("Creating director plan", { topic: state.scriptPackage.topic });
     const signal = workflowControlService.getActiveSignal();
-    const response = await this.agentRuntime.invokeStructuredJson({
-      roleKey: "director",
-      systemPrompt: directorPlanPrompt,
-      userPrompt: JSON.stringify(
-        {
-          genre: state.genre,
-          scriptPackage: state.scriptPackage,
-          constraints: {
-            maxSegmentDurationSec: MAX_SEGMENT_DURATION_SEC,
-            maxTotalDurationSec: MAX_TOTAL_DURATION_SEC,
-          },
-        },
-        null,
-        2,
-      ),
-      schema: directorPlanResponseSchema,
-      ...(signal ? { signal } : {}),
-    });
 
-    const breakdown = validateDirectorBreakdown(response.breakdown);
-    this.logger.info("Director plan created", { 
-      segmentCount: breakdown.length, 
-      durationReason: response.durationReason 
-    });
+    let lastError: Error | undefined;
+    const maxAttempts = 3;
+    
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        this.logger.info(`Director plan attempt ${attempt}/${maxAttempts}`);
+        
+        let response;
+        try {
+          response = await this.agentRuntime.invokeStructuredJson({
+            roleKey: "director",
+            systemPrompt: directorPlanPrompt,
+            userPrompt: JSON.stringify(
+              {
+                genre: state.genre,
+                scriptPackage: state.scriptPackage,
+                constraints: {
+                  maxSegmentDurationSec: MAX_SEGMENT_DURATION_SEC,
+                  maxTotalDurationSec: MAX_TOTAL_DURATION_SEC,
+                },
+                ...(attempt > 1 && lastError ? { 
+                  previousError: lastError.message,
+                  instruction: "Please ensure all segments have durationSec field and total duration does not exceed 120 seconds. Each segment must have order, durationSec, beat, narration, and visualDirection." 
+                } : {}),
+              },
+              null,
+              2,
+            ),
+            schema: directorPlanResponseSchema,
+            ...(signal ? { signal } : {}),
+          });
+        } catch (invokeError: unknown) {
+          // Convert Zod errors to more readable messages
+          if (invokeError instanceof Error && (invokeError.message.includes('invalid_type') || invokeError.message.includes('Required'))) {
+            throw new Error(`Invalid segment data: Please ensure all segments have order, durationSec (number), beat, narration, and visualDirection fields. Check segment durations are numbers.`);
+          }
+          throw invokeError;
+        }
 
-    return {
-      breakdown,
-      durationReason: response.durationReason,
-    };
+        const breakdown = validateDirectorBreakdown(response.breakdown);
+        this.logger.info("Director plan created", { 
+          segmentCount: breakdown.length, 
+          durationReason: response.durationReason,
+          attempt,
+        });
+
+        return {
+          breakdown,
+          durationReason: response.durationReason,
+        };
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+        this.logger.warn(`Director plan attempt ${attempt} failed`, { 
+          error: lastError.message,
+          attempt,
+        });
+        
+        if (attempt === maxAttempts) {
+          throw new Error(`Director plan failed after ${maxAttempts} attempts: ${lastError.message}`);
+        }
+        
+        // Wait briefly before retry
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+
+    // This should never be reached
+    throw new Error("Director plan failed unexpectedly");
   }
 
   private async formatResult(

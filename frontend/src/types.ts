@@ -115,6 +115,10 @@ export type PipelineRealtimeSnapshot = {
   logs: PipelineLogEntry[]
 }
 
+export type AudioLanguagePreference = {
+  language: 'english' | 'hindi'
+}
+
 export type PipelineSocketEvent =
   | { type: 'snapshot'; payload: PipelineRealtimeSnapshot }
   | { type: 'pong'; payload: { timestamp: string } }

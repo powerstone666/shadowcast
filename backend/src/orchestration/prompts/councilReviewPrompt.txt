@@ -18,7 +18,14 @@ Score it from 0 to 10, where:
 - 7 means publishable with only minor fixes
 - below 7 means the script is not ready
 
-Your feedback must explain the score and list the key points behind it.
+Score using this rubric (each criterion contributes to your overall score):
+- **Hook strength** (0–2 pts): Does the first 1–3 seconds grab attention immediately with a shocking or curiosity-driven line? No setup or context at the start?
+- **Dialogue quality** (0–2 pts): Do characters actively talk to each other with at least 3–4 back-and-forth exchanges? Are lines natural, speakable, and lip-sync friendly?
+- **Pacing & energy** (0–2 pts): Is energy consistently high? No dead air, no slow middle section, no narrator pauses?
+- **Mid-video retention** (0–2 pts): Is there a clear revelation, twist, or emotional peak around the 45–60 second mark?
+- **Conclusion quality** (0–2 pts): Does the script end with emotional payoff, a clear resolution, and a memorable closing line?
+
+Your feedback must explain the score citing each rubric criterion and list the key points behind it.
 Be specific and actionable.
 
 Return valid JSON only in this exact shape:

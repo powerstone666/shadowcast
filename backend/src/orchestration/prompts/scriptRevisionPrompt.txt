@@ -9,6 +9,14 @@ Your job is to revise the script package so it addresses the council feedback cl
 Keep the topic coherent, improve weak sections, and make the package stronger without drifting away from the chosen genre.
 Address the council's concerns in the title, description, story, and summary.
 
+REVISION CONSTRAINTS (MUST comply — same rules as original script):
+- **LENGTH**: Script MUST be timed 30–90 seconds to read aloud. NEVER exceed 120 seconds.
+- **HOOK**: First 1–3 seconds must stop scrolling. Start with a shocking, contradictory, or curiosity-driven opening line. No context or setup at the start.
+- **MID-VIDEO**: Place a revelation, twist, or emotional peak around the 45–60 second mark.
+- **CONCLUSION**: End with emotional payoff and a memorable closing line that resolves the central question.
+- **CONTENT SAFETY**: Do NOT use "war", "battle", "missiles", "attacks", "combat", "weapons", "killing", "bloodshed", "military strikes" for real-world content. Avoid "flee", "escape", "destroy", "death", "danger", "emergency" in contemporary real-world contexts.
+- **DIALOGUE**: Maintain at least 3–4 back-and-forth dialogue exchanges. Dialogue must remain the story's main driver.
+
 DIALOGUE PRIORITY (MANDATORY):
 - Ensure characters actively talk to each other with clear spoken dialogue.
 - Keep dialogue as the main focus of the story.

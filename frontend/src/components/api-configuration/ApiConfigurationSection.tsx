@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { fetchAgentConfigs, saveAgentConfig } from '../../services/agentConfigs'
 import { fetchYoutubeOAuthStatus, getYoutubeOAuthStartUrl } from '../../services/youtubeOAuth'
-import type { AgentRoleConfig, YoutubeOAuthStatus } from '../../types'
+import { fetchAudioLanguagePreference, saveAudioLanguagePreference } from '../../services/userPreferences'
+import type { AgentRoleConfig, YoutubeOAuthStatus, AudioLanguagePreference } from '../../types'
 import { mutedLabelClass, sectionTitleClass, surfaceClass } from '../../ui'
 
 const baseInputClass =
@@ -32,6 +33,9 @@ function ApiConfigurationSection() {
   const [activeSaveKey, setActiveSaveKey] = useState<string | null>(null)
   const [isLoadingAgentConfigs, setIsLoadingAgentConfigs] = useState(true)
   const [successToast, setSuccessToast] = useState<string | null>(null)
+  const [audioLanguage, setAudioLanguage] = useState<AudioLanguagePreference>({ language: 'english' })
+  const [isLoadingAudioLanguage, setIsLoadingAudioLanguage] = useState(true)
+  const [isSavingAudioLanguage, setIsSavingAudioLanguage] = useState(false)
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search)
@@ -50,6 +54,7 @@ function ApiConfigurationSection() {
 
     void loadOauthStatus()
     void loadAgentConfigs()
+    void loadAudioLanguage()
   }, [])
 
   useEffect(() => {
@@ -103,6 +108,29 @@ function ApiConfigurationSection() {
     } catch {
     } finally {
       setIsLoadingAgentConfigs(false)
+    }
+  }
+
+  async function loadAudioLanguage() {
+    setIsLoadingAudioLanguage(true)
+    try {
+      const languagePref = await fetchAudioLanguagePreference()
+      setAudioLanguage(languagePref)
+    } catch {
+    } finally {
+      setIsLoadingAudioLanguage(false)
+    }
+  }
+
+  async function handleSaveAudioLanguage(language: 'english' | 'hindi') {
+    setIsSavingAudioLanguage(true)
+    try {
+      const savedPref = await saveAudioLanguagePreference(language)
+      setAudioLanguage(savedPref)
+      setSuccessToast(`Audio language updated to ${language}`)
+    } catch {
+    } finally {
+      setIsSavingAudioLanguage(false)
     }
   }
 
@@ -187,6 +215,56 @@ function ApiConfigurationSection() {
           >
             {isRefreshingOauth ? 'Refreshing...' : 'Refresh Status'}
           </button>
+        </div>
+      </article>
+
+      <article className={`${surfaceClass} overflow-hidden`}>
+        <div className="border-b border-[rgba(88,66,45,0.09)] px-4 py-4 md:px-8 md:py-6">
+          <h2 className={`${sectionTitleClass} text-2xl md:text-[2rem]`}>Audio Language</h2>
+          <p className={`${mutedLabelClass} mt-2 max-w-3xl text-sm md:text-base`}>
+            Select the audio language for generated videos. Default is English.
+          </p>
+        </div>
+        <div className="px-4 py-4 md:px-8 md:py-8">
+          <div className="rounded-xl md:rounded-2xl border border-[rgba(118,88,70,0.1)] bg-white px-4 py-4 md:px-5 md:py-5">
+            {isLoadingAudioLanguage ? (
+              <div className="flex items-center justify-between">
+                <div className="h-6 w-32 animate-pulse rounded bg-[rgba(118,88,70,0.12)]" />
+                <div className="h-10 w-32 animate-pulse rounded-full bg-[rgba(118,88,70,0.12)]" />
+              </div>
+            ) : (
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm md:text-base font-medium text-[#765846]">Current Language</p>
+                  <p className={`${mutedLabelClass} mt-1`}>
+                    {audioLanguage.language === 'english' ? 'English' : 'Hindi'}
+                  </p>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void handleSaveAudioLanguage('english')
+                    }}
+                    disabled={isSavingAudioLanguage || audioLanguage.language === 'english'}
+                    className="rounded-full border border-[rgba(118,88,70,0.12)] bg-white px-4 py-3 md:px-5 md:py-3 font-semibold text-[#765846] disabled:cursor-not-allowed disabled:opacity-60 text-sm md:text-base min-h-[44px] flex-1 sm:flex-none"
+                  >
+                    {isSavingAudioLanguage && audioLanguage.language === 'english' ? 'Saving...' : 'Set English'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void handleSaveAudioLanguage('hindi')
+                    }}
+                    disabled={isSavingAudioLanguage || audioLanguage.language === 'hindi'}
+                    className="rounded-full bg-[#cc7440] px-4 py-3 md:px-5 md:py-3 font-semibold text-[#fff7ef] disabled:cursor-not-allowed disabled:opacity-60 text-sm md:text-base min-h-[44px] flex-1 sm:flex-none"
+                  >
+                    {isSavingAudioLanguage && audioLanguage.language === 'hindi' ? 'Saving...' : 'Set Hindi'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </article>
 
