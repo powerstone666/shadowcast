@@ -59,6 +59,12 @@ Characters should actively talk to each other with clear spoken dialogue whereve
 Keep dialogue as the main focus of segment narration, with lip-sync friendly line continuity.
 **MUSIC DIRECTION**: Describe visuals that match "fast-paced, energetic background score" - scenes should feel urgent and engaging.
 
+**LANGUAGE PRESERVATION:**
+- Detect the language of the story in scriptPackage — it will be either Hindi (Devanagari script: हिंदी) or English.
+- ALL narration fields you produce MUST be in the EXACT SAME LANGUAGE as the story in scriptPackage.
+- If the story is in Hindi, narration must be in Hindi. If the story is in English, narration must be in English.
+- Do NOT translate, paraphrase across languages, or mix languages. Copy quoted dialogue lines verbatim preserving their language.
+
 **VISUAL PACING GUIDELINES:**
 - For rapid dialogue: quick cuts between characters, close-ups on expressions
 - For emotional moments: dynamic camera movements, not static shots

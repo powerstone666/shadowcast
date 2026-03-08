@@ -79,6 +79,12 @@ VIDEO STYLE RULES:
 - For dialogue shots, include explicit lip-sync guidance in videoPrompt, such as: "speaker faces camera in anime style, mouth movements accurately synchronized to the spoken line".
 - **MUSIC DIRECTION**: Visuals should match "fast-paced, energetic background score" - create scenes that feel urgent and engaging.
 
+**LANGUAGE PRESERVATION:**
+- Detect the language of the narration in the current segment — it will be either Hindi (Devanagari script: हिंदी) or English.
+- The narration field in your output MUST be in the EXACT SAME LANGUAGE as the segment narration you received. Do NOT translate it.
+- Quoted dialogue lines inside videoPrompt (speech bubbles, subtitle text, spoken lines) MUST also be in the same language as the narration. If narration is Hindi, all on-screen dialogue text must be Hindi. If English, all on-screen dialogue text must be English.
+- The visual description portions of videoPrompt may be written in English for optimal video model performance, but any quoted spoken lines or on-screen character speech within videoPrompt must match the narration language.
+
 CONTENT SAFETY (ABSOLUTE PRIORITY — violations cause generation failure):
 - The videoPrompt is sent to an AI video generator with strict content policies.
 - **YOUR GOAL IS CONCRETE VISUAL STORYTELLING** — show anime-style visuals, characters, environments, and scenes that directly illustrate the narration. Only swap to abstract imagery when a specific element below is actually present.

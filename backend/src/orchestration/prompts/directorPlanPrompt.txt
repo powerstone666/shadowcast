@@ -110,6 +110,12 @@ CONTENT SAFETY (ABSOLUTE PRIORITY — violations cause generation failure):
 - Abstract sensitive topics into **"nature", "technology", "logistics"**, or **"abstract data"** visuals.
 - **NEVER** imply negative emotions in the visualDirection. Use "calm", "steady", "professional", or "serene" to describe the camera work and subjects.
 
+**LANGUAGE PRESERVATION:**
+- Detect the language of the story in scriptPackage — it will be either Hindi (Devanagari script: हिंदी) or English.
+- ALL narration fields you write in the breakdown MUST be in the EXACT SAME LANGUAGE as the story in scriptPackage.
+- If the story is in Hindi, every narration line must be in Hindi. If the story is in English, every narration line must be in English.
+- Do NOT translate, summarize across languages, or mix languages. Preserve quoted dialogue lines verbatim including their language.
+
 You must also provide a durationReason explaining why you chose the total duration you did.
 For example: "Chose 35 seconds because the topic is simple and can be conveyed with fast cuts" or "Chose 55 seconds because the narrative requires more context for the audience to understand the stakes."
 
