@@ -1,5 +1,6 @@
 import { randomBytes } from "node:crypto";
-import { readFile } from "node:fs/promises";
+import { createReadStream } from "node:fs";
+import { readFile, stat } from "node:fs/promises";
 import path from "node:path";
 
 import { PgDbService } from "./dbService.js";
@@ -332,8 +333,6 @@ export class YoutubeOAuthService {
     publishedAt: string;
     status: "uploaded";
   }> {
-    const videoBuffer = await readFile(input.videoPath);
-    const boundary = `yt-upload-${randomBytes(12).toString("hex")}`;
     const metadata = {
       snippet: {
         title: input.title,
@@ -345,46 +344,125 @@ export class YoutubeOAuthService {
       },
     };
 
-    const multipartBody = Buffer.concat([
-      Buffer.from(
-        `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n`,
-      ),
-      Buffer.from(
-        `--${boundary}\r\nContent-Type: video/mp4\r\nContent-Transfer-Encoding: binary\r\n\r\n`,
-      ),
-      videoBuffer,
-      Buffer.from(`\r\n--${boundary}--\r\n`),
-    ]);
+    // Use stat to get file size without loading the file into memory.
+    const fileSize = (await stat(input.videoPath)).size;
 
-    const response = await this.fetchWithAuth(
-      "https://www.googleapis.com/upload/youtube/v3/videos?part=snippet,status&uploadType=multipart",
+    const initiateResponse = await this.fetchWithAuth(
+      "https://www.googleapis.com/resumable/upload/youtube/v3/videos?part=snippet,status&uploadType=resumable",
       {
         method: "POST",
         headers: {
-          "Content-Type": `multipart/related; boundary=${boundary}`,
-          "Content-Length": String(multipartBody.length),
+          "Content-Type": "application/json; charset=UTF-8",
+          "X-Upload-Content-Type": "video/mp4",
+          "X-Upload-Content-Length": String(fileSize),
         },
-        body: multipartBody,
+        body: JSON.stringify(metadata),
       },
     );
 
-    const payload = (await response.json()) as {
-      id?: string;
-      snippet?: {
-        publishedAt?: string;
-      };
-    };
-
-    if (!response.ok || !payload.id) {
-      throw new Error("Failed to upload YouTube Short");
+    if (!initiateResponse.ok) {
+      const details = await initiateResponse.text();
+      throw new Error(`Failed to initiate YouTube resumable upload: ${initiateResponse.status} ${details}`);
     }
 
-    return {
-      videoId: payload.id,
-      videoUrl: `https://www.youtube.com/shorts/${payload.id}`,
-      publishedAt: payload.snippet?.publishedAt ?? new Date().toISOString(),
-      status: "uploaded",
-    };
+    const uploadUri = initiateResponse.headers.get("location");
+    if (!uploadUri) {
+      throw new Error("YouTube resumable upload initiation did not return an upload URI");
+    }
+
+    this.logger.info("Resumable upload session initiated", { fileSize });
+
+    // Step 2: Upload the video bytes to the resumable URI, with retry.
+    // On a transient failure, query YouTube for how many bytes it already received
+    // and resume from that offset — avoiding a full re-upload.
+    const MAX_UPLOAD_ATTEMPTS = 4;
+    const RETRY_DELAY_MS = 10_000;
+
+    for (let attempt = 0; attempt < MAX_UPLOAD_ATTEMPTS; attempt += 1) {
+      let startByte = 0;
+
+      if (attempt > 0) {
+        // Query upload progress: YouTube responds with 308 + Range header showing bytes already received.
+        await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
+        try {
+          const progressResponse = await fetch(uploadUri, {
+            method: "PUT",
+            headers: {
+              "Content-Range": `bytes */${fileSize}`,
+              "Content-Length": "0",
+            },
+          });
+
+          if (progressResponse.ok || progressResponse.status === 201) {
+            // Upload somehow completed in the background — parse the result.
+            const payload = (await progressResponse.json()) as { id?: string; snippet?: { publishedAt?: string } };
+            if (payload.id) {
+              return {
+                videoId: payload.id,
+                videoUrl: `https://www.youtube.com/shorts/${payload.id}`,
+                publishedAt: payload.snippet?.publishedAt ?? new Date().toISOString(),
+                status: "uploaded",
+              };
+            }
+          }
+
+          if (progressResponse.status === 308) {
+            const rangeHeader = progressResponse.headers.get("range");
+            if (rangeHeader) {
+              // Range header is "bytes=0-N" — resume from N+1
+              const lastByte = parseInt(rangeHeader.split("-")[1] ?? "0", 10);
+              startByte = lastByte + 1;
+              this.logger.info(`Resuming upload from byte ${startByte}`, { attempt });
+            }
+          }
+        } catch {
+          // Progress query failed — restart from byte 0
+          this.logger.warn(`Upload progress query failed on attempt ${attempt}, restarting from byte 0`);
+          startByte = 0;
+        }
+      }
+
+      const chunk = startByte > 0 ? createReadStream(input.videoPath, { start: startByte }) : createReadStream(input.videoPath);
+      const uploadResponse = await fetch(uploadUri, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "video/mp4",
+          "Content-Length": String(fileSize - startByte),
+          "Content-Range": `bytes ${startByte}-${fileSize - 1}/${fileSize}`,
+          // Node.js fetch requires duplex when body is a stream
+          ...("duplex" as unknown as object),
+        } as Record<string, string>,
+        body: chunk as unknown as BodyInit,
+        // @ts-expect-error — Node.js fetch requires duplex for streaming bodies
+        duplex: "half",
+      });
+
+      if (uploadResponse.ok || uploadResponse.status === 201) {
+        const payload = (await uploadResponse.json()) as { id?: string; snippet?: { publishedAt?: string } };
+        if (!payload.id) {
+          throw new Error("YouTube upload succeeded but returned no video ID");
+        }
+        this.logger.info("Video uploaded successfully via resumable upload", { videoId: payload.id });
+        return {
+          videoId: payload.id,
+          videoUrl: `https://www.youtube.com/shorts/${payload.id}`,
+          publishedAt: payload.snippet?.publishedAt ?? new Date().toISOString(),
+          status: "uploaded",
+        };
+      }
+
+      const errorText = await uploadResponse.text();
+      this.logger.warn(`Upload attempt ${attempt + 1} failed`, {
+        status: uploadResponse.status,
+        error: errorText.slice(0, 200),
+      });
+
+      if (attempt === MAX_UPLOAD_ATTEMPTS - 1) {
+        throw new Error(`Failed to upload YouTube Short after ${MAX_UPLOAD_ATTEMPTS} attempts: ${uploadResponse.status} ${errorText.slice(0, 200)}`);
+      }
+    }
+
+    throw new Error("Failed to upload YouTube Short: exhausted all retry attempts");
   }
 
   async setThumbnail(input: SetThumbnailInput): Promise<{ thumbnailUrl: string }> {

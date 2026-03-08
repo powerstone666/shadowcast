@@ -10,6 +10,12 @@ const POLL_INTERVAL_MS = 15_000;
 const MAX_POLL_ATTEMPTS = 40;
 const TASK_TERMINAL_STATUSES = new Set(["SUCCEEDED", "FAILED", "CANCELED", "UNKNOWN"]);
 
+// DashScope only allows one active video task per API key.
+// If a previous task is still running (e.g. orphaned from a failed parallel run),
+// the API returns "A workflow is already running". We retry with backoff to wait it out.
+const SUBMIT_RETRY_ATTEMPTS = 8;
+const SUBMIT_RETRY_DELAY_MS = 30_000;
+
 const createTaskResponseSchema = z.object({
   request_id: z.string().optional(),
   code: z.string().nullable().optional(),
@@ -149,33 +155,48 @@ export class DashScopeVideoGenerationService {
     promptExtend: boolean;
     signal?: AbortSignal;
   }): Promise<string> {
-    const response = await fetch(`${apiBase}/services/aigc/video-generation/video-synthesis`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-        "X-DashScope-Async": "enable",
-      },
-      ...(signal ? { signal } : {}),
-      body: JSON.stringify({
-        model: modelName,
-        input: {
-          prompt,
-        },
-        parameters: {
-          size: DEFAULT_VIDEO_SIZE,
-          prompt_extend: promptExtend,
-          duration: durationSec,
-        },
-      }),
-    });
+    for (let attempt = 0; attempt < SUBMIT_RETRY_ATTEMPTS; attempt += 1) {
+      if (attempt > 0) {
+        await sleep(SUBMIT_RETRY_DELAY_MS, signal);
+      }
 
-    const payload = createTaskResponseSchema.parse(await response.json());
-    if (!response.ok || !payload.output?.task_id) {
-      throw new Error(payload.message ?? payload.code ?? "Failed to create video generation task");
+      const response = await fetch(`${apiBase}/services/aigc/video-generation/video-synthesis`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+          "X-DashScope-Async": "enable",
+        },
+        ...(signal ? { signal } : {}),
+        body: JSON.stringify({
+          model: modelName,
+          input: {
+            prompt,
+          },
+          parameters: {
+            size: DEFAULT_VIDEO_SIZE,
+            prompt_extend: promptExtend,
+            duration: durationSec,
+          },
+        }),
+      });
+
+      const payload = createTaskResponseSchema.parse(await response.json());
+
+      if (!response.ok || !payload.output?.task_id) {
+        const message = payload.message ?? payload.code ?? "Failed to create video generation task";
+        const isAlreadyRunning = message.toLowerCase().includes("already running");
+        if (isAlreadyRunning && attempt < SUBMIT_RETRY_ATTEMPTS - 1) {
+          // A previous task is still active on DashScope. Wait and retry.
+          continue;
+        }
+        throw new Error(message);
+      }
+
+      return payload.output.task_id;
     }
 
-    return payload.output.task_id;
+    throw new Error("Failed to create video generation task: DashScope still busy after all retry attempts");
   }
 
   private async waitForTask({

@@ -257,116 +257,121 @@ export class VideoGenerationWorkflow {
       throw new Error("Temporary output directory is missing");
     }
 
-    const segments: RenderedVideoSegment[] = new Array(state.syncedSegments.length);
-    this.logger.info("cameraman handles text planning, video-gen handles clip generation");
-    pipelineRealtimeService.appendLog("using video-gen model for clips, cameraman for segment planning");
-
-    const PARALLEL_BATCH_SIZE = 2;
-    this.logger.info("Starting video segment generation", { 
-      totalSegments: state.syncedSegments.length, 
-      batchSize: PARALLEL_BATCH_SIZE 
+    // PHASE 1 — Parallel cameraman planning.
+    // All cameraman LLM calls run simultaneously. They are pure text inference with
+    // no DashScope constraint, so parallelism is safe and saves (N-1) * ~LLM_latency.
+    // Segments already in cache skip the LLM call entirely.
+    this.logger.info("Phase 1: parallel cameraman prompt planning", {
+      totalSegments: state.syncedSegments.length,
     });
+    pipelineRealtimeService.appendLog("planning all segment prompts in parallel");
 
-    for (let batchStart = 0; batchStart < state.syncedSegments.length; batchStart += PARALLEL_BATCH_SIZE) {
+    const segmentPlans = await Promise.all(
+      state.syncedSegments.map(async (syncedSegment) => {
+        const fileNameStem = buildSegmentFileName(syncedSegment.order, syncedSegment.beat);
+        const cachedSegment = await workflowCacheService.getCachedResult<RenderedVideoSegment>(fileNameStem);
+        if (cachedSegment) {
+          this.logger.info(`Segment ${syncedSegment.order} already cached — skipping planning`);
+          return { syncedSegment, fileNameStem, cachedSegment, plan: null };
+        }
+
+        workflowControlService.ensureNotTerminated();
+        const signal = workflowControlService.getActiveSignal();
+        const segmentPlan = await this.agentRuntime.invokeStructuredJson({
+          roleKey: "cameraman",
+          systemPrompt: cameramanVideoPrompt,
+          userPrompt: JSON.stringify(
+            {
+              genre: state.genre,
+              scriptPackage: state.scriptPackage,
+              breakdown: state.breakdown,
+              currentSegment: syncedSegment,
+            },
+            null,
+            2,
+          ),
+          schema: generatedVideoSegmentSchema,
+          ...(signal ? { signal } : {}),
+        });
+
+        const validatedPlan = validateGeneratedVideoSegment(syncedSegment, segmentPlan);
+        this.logger.info(`Segment ${syncedSegment.order} prompt planned`);
+        return { syncedSegment, fileNameStem, cachedSegment: null, plan: validatedPlan };
+      }),
+    );
+
+    // PHASE 2 — Sequential video rendering.
+    // DashScope allows only one active task per API key, so clips are submitted one at a time.
+    this.logger.info("Phase 2: sequential video clip rendering", {
+      totalSegments: segmentPlans.length,
+    });
+    pipelineRealtimeService.appendLog("rendering video clips sequentially");
+
+    const segments: RenderedVideoSegment[] = [];
+
+    for (const { syncedSegment, fileNameStem, cachedSegment, plan } of segmentPlans) {
+      if (cachedSegment) {
+        this.logger.info(`Loaded segment ${syncedSegment.order} from cache`);
+        pipelineRealtimeService.appendLog(`loaded segment ${syncedSegment.order} from cache`);
+        segments.push(cachedSegment);
+        continue;
+      }
+
       workflowControlService.ensureNotTerminated();
-      const batch = state.syncedSegments.slice(batchStart, batchStart + PARALLEL_BATCH_SIZE);
-      this.logger.info(`Processing batch starting at ${batchStart}`, { batchSize: batch.length });
+      const validatedSegmentPlan = plan!;
 
-      const batchResults = await Promise.all(
-        batch.map(async (syncedSegment) => {
-          const fileNameStem = buildSegmentFileName(syncedSegment.order, syncedSegment.beat);
-          const cachedSegment = await workflowCacheService.getCachedResult<RenderedVideoSegment>(fileNameStem);
-          if (cachedSegment) {
-            this.logger.info(`Loaded segment ${syncedSegment.order} from cache`);
-            pipelineRealtimeService.appendLog(`loaded segment ${syncedSegment.order} from cache`);
-            return cachedSegment;
-          }
-
-          this.logger.info(`Generating segment ${syncedSegment.order}`, { beat: syncedSegment.beat });
-          pipelineRealtimeService.appendLog(
-            `generating segment ${syncedSegment.order}: ${syncedSegment.beat.toLowerCase()}`,
-          );
-          const signal = workflowControlService.getActiveSignal();
-          const segmentPlan = await this.agentRuntime.invokeStructuredJson({
-            roleKey: "cameraman",
-            systemPrompt: cameramanVideoPrompt,
-            userPrompt: JSON.stringify(
-              {
-                genre: state.genre,
-                scriptPackage: state.scriptPackage,
-                breakdown: state.breakdown,
-                currentSegment: syncedSegment,
-              },
-              null,
-              2,
-            ),
-            schema: generatedVideoSegmentSchema,
-            ...(signal ? { signal } : {}),
-          });
-
-          const validatedSegmentPlan = validateGeneratedVideoSegment(syncedSegment, segmentPlan);
-
-          this.logger.info(`Rendering clip for segment ${syncedSegment.order}`, { 
-            videoPrompt: validatedSegmentPlan.videoPrompt.substring(0, 100) + "..." 
-          });
-          pipelineRealtimeService.appendLog(
-            `segment ${syncedSegment.order} model prompt (exact):\n${validatedSegmentPlan.videoPrompt}`,
-          );
-
-          let artifact: GeneratedVideoArtifact;
-          try {
-            artifact = await this.videoGenerationService.generateVideoClip({
-              config: videoGenConfig,
-              prompt: validatedSegmentPlan.videoPrompt,
-              durationSec: validatedSegmentPlan.durationSec,
-              outputDir: state.tempDir!,
-              fileNameStem,
-              ...(signal ? { signal } : {}),
-            });
-          } catch (err) {
-            const isInappropriate = err instanceof Error && err.message.toLowerCase().includes("inappropriate");
-            if (!isInappropriate) throw err;
-
-            this.logger.warn(`Segment ${syncedSegment.order} rejected for inappropriate content, sanitizing and retrying`);
-            pipelineRealtimeService.appendLog(`segment ${syncedSegment.order}: content rejected, sanitizing prompt and retrying`);
-
-            const sanitizedPrompt = this.sanitizeVideoPrompt(
-              validatedSegmentPlan.videoPrompt,
-              syncedSegment.order,
-            );
-            pipelineRealtimeService.appendLog(
-              `segment ${syncedSegment.order} sanitized model prompt (exact):\n${sanitizedPrompt}`,
-            );
-            artifact = await this.videoGenerationService.generateVideoClip({
-              config: videoGenConfig,
-              prompt: sanitizedPrompt,
-              durationSec: validatedSegmentPlan.durationSec,
-              outputDir: state.tempDir!,
-              fileNameStem,
-              ...(signal ? { signal } : {}),
-            });
-            validatedSegmentPlan.videoPrompt = sanitizedPrompt;
-          }
-
-          const finalSegment = {
-            ...validatedSegmentPlan,
-            ...artifact,
-          };
-          await workflowCacheService.saveResult(fileNameStem, finalSegment);
-          this.logger.info(`Segment ${validatedSegmentPlan.order} rendered successfully`);
-          pipelineRealtimeService.appendLog(`segment ${validatedSegmentPlan.order} rendered`);
-          return finalSegment;
-        }),
+      this.logger.info(`Rendering clip for segment ${syncedSegment.order}`, {
+        beat: syncedSegment.beat,
+        videoPrompt: validatedSegmentPlan.videoPrompt.substring(0, 100) + "...",
+      });
+      pipelineRealtimeService.appendLog(
+        `generating segment ${syncedSegment.order}: ${syncedSegment.beat.toLowerCase()}`,
+      );
+      pipelineRealtimeService.appendLog(
+        `segment ${syncedSegment.order} model prompt (exact):\n${validatedSegmentPlan.videoPrompt}`,
       );
 
-      batchResults.forEach((segment, index) => {
-        segments[batchStart + index] = segment;
-      });
+      const signal = workflowControlService.getActiveSignal();
+      let artifact: GeneratedVideoArtifact;
+      try {
+        artifact = await this.videoGenerationService.generateVideoClip({
+          config: videoGenConfig,
+          prompt: validatedSegmentPlan.videoPrompt,
+          durationSec: validatedSegmentPlan.durationSec,
+          outputDir: state.tempDir,
+          fileNameStem,
+          ...(signal ? { signal } : {}),
+        });
+      } catch (err) {
+        const isInappropriate = err instanceof Error && err.message.toLowerCase().includes("inappropriate");
+        if (!isInappropriate) throw err;
+
+        this.logger.warn(`Segment ${syncedSegment.order} rejected for inappropriate content, sanitizing and retrying`);
+        pipelineRealtimeService.appendLog(`segment ${syncedSegment.order}: content rejected, sanitizing prompt and retrying`);
+
+        const sanitizedPrompt = this.sanitizeVideoPrompt(validatedSegmentPlan.videoPrompt, syncedSegment.order);
+        pipelineRealtimeService.appendLog(
+          `segment ${syncedSegment.order} sanitized model prompt (exact):\n${sanitizedPrompt}`,
+        );
+        artifact = await this.videoGenerationService.generateVideoClip({
+          config: videoGenConfig,
+          prompt: sanitizedPrompt,
+          durationSec: validatedSegmentPlan.durationSec,
+          outputDir: state.tempDir,
+          fileNameStem,
+          ...(signal ? { signal } : {}),
+        });
+        validatedSegmentPlan.videoPrompt = sanitizedPrompt;
+      }
+
+      const finalSegment = { ...validatedSegmentPlan, ...artifact };
+      await workflowCacheService.saveResult(fileNameStem, finalSegment);
+      this.logger.info(`Segment ${validatedSegmentPlan.order} rendered successfully`);
+      pipelineRealtimeService.appendLog(`segment ${validatedSegmentPlan.order} rendered`);
+      segments.push(finalSegment);
     }
 
-    return {
-      segments,
-    };
+    return { segments };
   }
 
   private sanitizeVideoPrompt(
