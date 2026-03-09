@@ -1,13 +1,11 @@
 import { writeFile } from "node:fs/promises";
 import path from "node:path";
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
-
-const execFileAsync = promisify(execFile);
+import { spawn } from "node:child_process";
 
 type StitchVideosInput = {
   outputDir: string;
   segmentPaths: string[];
+  signal?: AbortSignal;
 };
 
 export class FfmpegVideoStitchService {
@@ -25,8 +23,8 @@ export class FfmpegVideoStitchService {
       "utf-8",
     );
 
-    try {
-      await execFileAsync("ffmpeg", [
+    return new Promise<string>((resolve, reject) => {
+      const ffmpeg = spawn("ffmpeg", [
         "-y",
         "-f",
         "concat",
@@ -38,11 +36,49 @@ export class FfmpegVideoStitchService {
         "copy",
         outputPath,
       ]);
-    } catch (error) {
-      throw wrapFfmpegError(error);
-    }
 
-    return outputPath;
+      let stderr = "";
+      
+      ffmpeg.stderr.on("data", (data) => {
+        stderr += data.toString();
+      });
+
+      ffmpeg.on("close", (code) => {
+        if (code === 0) {
+          resolve(outputPath);
+        } else {
+          const error = new Error(`ffmpeg failed with code ${code}: ${stderr}`);
+          reject(wrapFfmpegError(error));
+        }
+      });
+
+      ffmpeg.on("error", (err) => {
+        reject(wrapFfmpegError(err));
+      });
+
+      // Handle abort signal
+      if (input.signal) {
+        if (input.signal.aborted) {
+          ffmpeg.kill("SIGTERM");
+          reject(new Error("FFmpeg stitching aborted"));
+          return;
+        }
+        
+        const abortHandler = () => {
+          ffmpeg.kill("SIGTERM");
+          reject(new Error("FFmpeg stitching aborted"));
+        };
+        input.signal.addEventListener("abort", abortHandler);
+        
+        // Clean up listener on completion
+        ffmpeg.on("close", () => {
+          input.signal?.removeEventListener("abort", abortHandler);
+        });
+        ffmpeg.on("error", () => {
+          input.signal?.removeEventListener("abort", abortHandler);
+        });
+      }
+    });
   }
 }
 

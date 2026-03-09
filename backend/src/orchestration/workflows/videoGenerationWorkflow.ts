@@ -394,9 +394,11 @@ export class VideoGenerationWorkflow {
 
     this.logger.info("Stitching video segments", { segmentCount: state.segments.length });
     pipelineRealtimeService.appendLog("stitching final video");
+    const signal = workflowControlService.getActiveSignal();
     const stitchedVideoPath = await this.ffmpegVideoStitchService.stitchVideos({
       outputDir: state.tempDir,
       segmentPaths: state.segments.map((segment) => segment.localPath),
+      ...(signal ? { signal } : {}),
     });
 
     this.logger.info("Video stitched successfully", { stitchedVideoPath });

@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { rm } from "node:fs/promises";
 
 import { ConflictError, WorkflowTerminatedError } from "../orchestration/errors.js";
+import { workflowCacheService } from "./workflowCacheService.js";
 
 type ActiveWorkflowRun = {
   runId: string;
@@ -70,6 +71,15 @@ export class WorkflowControlService {
 
     this.activeRun.controller.abort();
     const cleanedTempDirs = await this.cleanupTempDirs(this.activeRun.tempDirs);
+    
+    // Also clean up workflow cache files
+    try {
+      await workflowCacheService.cleanCache();
+    } catch (error) {
+      // Log but don't fail termination if cache cleanup fails
+      console.warn("Failed to clean workflow cache during termination:", error);
+    }
+    
     return {
       terminated: true,
       cleanedTempDirs,
