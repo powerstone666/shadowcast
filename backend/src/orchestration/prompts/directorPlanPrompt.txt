@@ -6,6 +6,40 @@ You receive:
 - the chosen genre
 - the current script package
 
+---
+
+**GENRE STORY MODE — Read this before planning a single segment.**
+
+The genre dictates HOW each segment is staged and narrated. Identify the correct mode and apply it to every segment.
+
+**MODE 1 — ACTION / FIGHT / MYTHOLOGY / FANTASY**
+*(e.g., Wukong vs demon, god wars, epic battles, legendary duels)*
+- Narration in each segment is the play-by-play of the physical sequence: blow, counter, escalation, climax.
+- Character spoken lines in narration are SHORT explosive cries at peak moments — maximum 2–6 words: *"Is that your best?!"* / *"This ends NOW."* — NOT conversations, NOT monologues.
+- Every segment must have a distinct physical event happening: a power strike lands, a character is driven back, a weapon is summoned, a turning point shifts the fight.
+- Visual direction must stage the action — characters in motion, impact frames, power surges, dramatic camera angles mid-fight.
+- PERMITTED and REQUIRED vocabulary for fictional combat in both narration and visualDirection: fight, clash, strike, charge, fury, power, overwhelm, roar, crush, dodge, blow, unleash, rage, shatter, tear through, drive back, overpower, divine energy, demon force.
+
+**MODE 2 — HORROR / THRILLER / SUPERNATURAL / DARK**
+*(e.g., haunted location, cursed object, creature encounter, psychological terror)*
+- Narration builds dread stage by stage: wrong detail → escalation → reveal → consequence.
+- Character spoken lines in narration are short, fractured, terrified: *"That's… not possible."* / *"Run."*
+- Visual direction must create atmosphere: flickering light, impossible shadow, a face frozen in terror, a door that opens on its own.
+- Each segment intensifies the dread — do not let any middle segment settle into calm.
+
+**MODE 3 — DRAMA / HISTORY / BIOGRAPHY / ROMANCE / TRAGEDY**
+- Dialogue exchanges ARE appropriate here. Preserve 3–4 back-and-forth spoken lines from the script, embedded at the story's critical moment.
+- Narration sets context between exchanges. Visual direction stages the conversation DURING the scene's emotional peak — mid-goodbye, mid-betrayal, mid-revelation — not in a neutral setting.
+
+**MODE 4 — DOCUMENTARY / SCIENCE / TECHNOLOGY / POLITICS / MYSTERY**
+- Narrator-led revelation format. Each segment advances the reveal.
+- Narration states a fact, unpacks it, or delivers the twist. Sparse quoted lines punctuate key moments.
+- Visual direction uses symbolic, data-driven, or environmental imagery to reinforce the narration.
+
+**CRITICAL RULE**: Identify the genre mode before planning. A fight scene staged as a conversation is wrong. A horror scene staged as a calm documentary is wrong. Match the mode to the genre on every single segment.
+
+---
+
 **SCROLL OPTIMIZATION - THE 1-3 SECOND HOOK:**
 - **SEGMENT 1 (HOOK) MUST STOP SCROLLING**: The first segment's narration and visuals must work within 1-3 seconds.
 - **AUDIO HOOK**: First narration line should be shocking, surprising, contradictory, or create intense curiosity.
@@ -13,6 +47,8 @@ You receive:
 - **HOOK EXAMPLES**:
   - Audio: "Everything you know about this story is wrong."
   - Visual: Dramatic close-up of a character's shocked expression, dramatic lighting, impactful moment
+  - Audio: "No one had ever survived a blow from him — until today."
+  - Visual: A warrior launched through the air, impact crater forming beneath them, dust exploding outward
   - Audio: "This wasn't a punishment, it was protection."
   - Visual: Symbolic transformation scene with dynamic camera movement
 - **NO SETUP**: Don't start with context. Start with the revelation, conflict, or surprising truth.
@@ -21,13 +57,13 @@ You receive:
 **MID-VIDEO RETENTION - 45-60 SECOND MARK:**
 - **MID-SECTION DYNAMICS**: Around segments 4-6 (approx 45-60 seconds), visual storytelling must remain as dynamic as opening.
 - **AVOID MID-SECTION DROP**: This is a common viewer drop-off point. Maintain or increase energy.
-- **MID-POINT REVELATION**: Place a significant revelation, twist, or emotional peak in middle segments.
+- **MID-POINT REVELATION**: Place a significant revelation, twist, physical turning point, or emotional peak in middle segments.
 - **VISUAL VARIETY IN MIDDLE**: Change up visual style, camera angles, or location to maintain interest.
 - **MID-SECTION PACING**:
   - Quicker cuts between segments
-  - Heightened emotional visuals
+  - Heightened emotional or action visuals
   - Introduce visual surprises or reveals
-  - Maintain rapid dialogue pace
+  - Maintain rapid narration pace
 - **ENERGY DISTRIBUTION**: Hook (segment 1) → Setup (2-3) → **BUILD-UP & REVELATION (4-6)** → Resolution (7+)
 
 **STRONG CONCLUSION - FINAL SEGMENTS:**
@@ -39,12 +75,14 @@ You receive:
   - **SATISFYING COMPLETION**: Story should feel complete, not abrupt or unfinished
   - **VISUAL CLOSURE**: Use symbolic imagery that ties back to opening visuals
 - **CONCLUSION VISUAL TECHNIQUES**:
-  - Final character moments showing resolution or growth
-  - Symbolic transformation or resolution scene
-  - Emotional close-up on character's face showing peace or realization
-  - Visual callback to opening scene (similar composition but changed)
+  - Final character moments showing resolution or transformation
+  - Symbolic power fading or rising — a warrior standing over a defeated foe, a haunted figure finally at peace
+  - Emotional close-up on character's face showing peace, victory, grief, or realization
+  - Visual callback to opening scene (similar composition but changed outcome)
   - Slow, meaningful camera movement for emotional impact
 - **FINAL BEAT**: Last segment should be labeled "Conclusion" or "Resolution"
+
+---
 
 Your job is to break the story into a short-form direction plan.
 Create an ordered array of breakdown segments.
@@ -75,49 +113,70 @@ Hard constraints:
 - Keep the sequence tight and cinematic.
 - The breakdown should follow the story in order.
 
+---
+
 NARRATION & STORYTELLING RULES:
 - The "narration" field must contain the ACTUAL SCRIPT that will be spoken by the voiceover.
-- Do NOT use descriptive text or summaries in the "narration" field. Use dialogue-like, engaging storytelling.
+- Do NOT use descriptive text or summaries in the "narration" field. Use the actual spoken words.
 - The tone should be conversational, emotional, and punchy. Imagine a real narrator speaking directly to the viewer.
 - Use variety in sentence structure: rhetorical questions, dramatic reveals, and short, impactful statements.
-- Preserve direct dialogue from the script when present (keep quoted lines verbatim where possible).
-- Ensure at least one segment includes a direct quote line in narration when the script contains dialogue.
-- Dialogue format example for narration lines: Person 1: "Hey, how are you?" Person 2: "Fine."
-- Characters must actively talk to each other with clear spoken dialogue in relevant beats.
-- Dialogue must remain the main focus of spoken content.
-- Ensure the narration flows naturally between segments to create a single, cohesive story.
+- Preserve direct spoken lines from the script verbatim where possible — quoted lines, battle cries, and reactions.
+
+**GENRE-AWARE NARRATION MODE:**
+- **For ACTION/FIGHT segments**: Narration is the play-by-play. Describe the physical event in vivid present-tense narration, then drop the character's short cry at the peak moment. Example: *"The demon charges — Wukong sidesteps, grabs its arm, and HURLS it into the mountain wall. 'Is that your best?!'"* — NOT two characters having a conversation.
+- **For HORROR segments**: Narration carries the dread. Describe the wrong detail or impossible thing, then the character's short frightened reaction. Example: *"The door opens on its own. The lights die one by one. She whispers — 'It's already inside.'"*
+- **For DRAMA/HISTORY segments**: Dialogue exchanges are preserved and embedded mid-scene. Narration sets the moment. Example: *"She looked him in the eye — knowing it was the last time. 'You were always the brave one.' He smiled. 'Only because of you.'"*
+- **For DOCUMENTARY segments**: Narration reveals and unpacks. Example: *"Here's what no one told you — the experiment worked. But the results were buried for thirty years."*
+
 - **CONSTANT ACTION**: Every segment must have physical action, movement, or a dramatic incident happening — not just characters present in a scene. Describe WHAT IS HAPPENING at each moment.
-- **ZERO MUSIC-ONLY GAPS**: No segment can be a silent or music-only gap. Every segment must have spoken narration or dialogue for its entire duration. Music is background only — never the sole content of a segment.
+- **ZERO MUSIC-ONLY GAPS**: No segment can be a silent or music-only gap. Every segment must have spoken narration for its entire duration. Music is background only — never the sole content of a segment.
+- Ensure the narration flows naturally between segments to create a single, cohesive story.
+
+---
 
 VISUAL STYLE RULES:
 - All visuals must use Anime-style animation. The visualDirection should describe anime-style scenes, characters, environments, and cinematic compositions.
-- The visualDirection must describe narrator-driven visual storytelling: scenes, imagery, text overlays, maps, people, and cinematic compositions, all rendered in anime art style.
-- Plan visualDirection for native audio-capable generation when available: include where spoken dialogue happens and who speaks, with anime-style character animations.
-- For dialogue beats, stage the conversation DURING the incident — characters speak mid-confrontation, mid-standoff, mid-revelation. Never place dialogue in a static, neutral setting if the scene has action around it. Show where they are and what is happening as they speak.
-- Lip-sync staging must still be preserved (clear face visibility, mouth visible), but frame it within the kinetic scene — close-up on face during a standoff, cut to speaker mid-movement, reaction shot while the event unfolds.
-- Think intense anime short film action — dialogue lines dropped in the middle of a charging scene, a face-to-face power moment, a critical turning point — not two characters standing still having a conversation.
-- Music direction must be fast-paced and energetic, matching the urgency of the narration. Never slow or ambient.
+- The visualDirection must describe narrator-driven visual storytelling: scenes, imagery, action sequences, environments, and cinematic compositions, all rendered in anime art style.
+- Plan visualDirection for native audio-capable generation when available: include where spoken lines happen and who speaks, with anime-style character animations.
+- For action beats, stage the fight or confrontation dynamically — characters in motion mid-strike, power impacts, dramatic reaction shots, wide establishing shots of the clash. Think intense anime short film action.
+- For horror beats, stage atmosphere — flickering shadows, impossible geometry, a creature half-revealed in darkness, a face frozen in dread.
+- For dialogue beats, stage the conversation DURING the incident — characters speak mid-confrontation, mid-standoff, mid-revelation. Show where they are and what is happening as they speak. Lip-sync staging must preserve clear face visibility, but frame it within the kinetic scene.
+- Music direction must be fast-paced and energetic for action and horror, matching the urgency of the narration. For drama and documentary, it can be emotional and tense. Never slow ambient for action/horror.
 
-CONTENT SAFETY (ABSOLUTE PRIORITY — violations cause generation failure):
-- The visualDirection feeds into an AI video generator with strict content policies.
-- NEVER describe weapons, missiles, bombs, explosions, combat, gunfire, military strikes, or graphic violence.
-- **STRICTLY PROHIBITED WORDS**: Do not use "war", "conflict", "battle", "tension", "attack", "flee", "escape", "hunt", "destroy", "distress", "panic", "emergency", "danger", "death", or "ruin".
-- NEVER name real political leaders or identifiable public figures.
-- Use **SAFE VISUAL ALTERNATIVES** that are abstract, serene, and symbolic:
-  - For conflict/tension: show static ticking clocks, slow-moving clouds, sunrise over a city, close-ups of a pen, balance scales in perfect equilibrium.
-  - For global impact/geopolitics: show rotating globes, glowing data networks, high-tech control rooms with green/blue neutral screens, abstract flags in the wind.
-  - For economics: show stock tickers, currency symbols, generic shopping scenes, busy ports, factory gear wheels.
-- Abstract sensitive topics into **"nature", "technology", "logistics"**, or **"abstract data"** visuals.
-- **NEVER** imply negative emotions in the visualDirection. Use "calm", "steady", "professional", or "serene" to describe the camera work and subjects.
+---
+
+CONTENT SAFETY:
+
+**FOR FICTIONAL / MYTHOLOGICAL / FANTASY / HORROR CONTENT:**
+- Action visuals ARE permitted and required. Describe the fight, the power clash, the creature, the dark event.
+- ALLOWED in both narration and visualDirection: fight, clash, strike, charge, unleash, power surge, overwhelm, roar, dark creature, shadow entity, divine energy, demon force, monster, spirit, magical impact, warrior charging, hero leaping, creature emerging from darkness.
+- Keep violence epic and cinematic — NOT graphic gore, NOT dismemberment, NOT realistic blood. Think anime-style impact frames, energy blasts, and dramatic knockbacks — not injuries described in clinical detail.
+
+**FOR REAL-WORLD / CONTEMPORARY CONTENT:**
+- NEVER depict real people in negative, violent, or controversial scenarios.
+- NEVER describe real military operations, real weapons (guns, missiles, bombs), or real-world political violence.
+- Use SAFE VISUAL ALTERNATIVES that are abstract, symbolic, and neutral:
+  - For conflict/tension: static ticking clocks, slow-moving clouds, sunrise over a city, balance scales.
+  - For global impact/geopolitics: rotating globes, glowing data networks, abstract flags in the wind.
+  - For economics: stock tickers, currency symbols, busy ports, factory gear wheels.
+- Abstract sensitive topics into "nature", "technology", "logistics", or "abstract data" visuals.
+
+**FOR ALL CONTENT:**
+- NEVER name identifiable real political leaders or public figures in a negative, violent, or controversial framing.
+- NEVER depict graphic gore, dismemberment, or realistic bodily harm.
+
+---
 
 **LANGUAGE PRESERVATION:**
 - Detect the language of the story in scriptPackage — it will be either Hindi (Devanagari script: हिंदी) or English.
 - ALL narration fields you write in the breakdown MUST be in the EXACT SAME LANGUAGE as the story in scriptPackage.
 - If the story is in Hindi, every narration line must be in Hindi. If the story is in English, every narration line must be in English.
-- Do NOT translate, summarize across languages, or mix languages. Preserve quoted dialogue lines verbatim including their language.
+- Do NOT translate, summarize across languages, or mix languages. Preserve quoted lines verbatim including their language.
+
+---
 
 You must also provide a durationReason explaining why you chose the total duration you did.
-For example: "Chose 35 seconds because the topic is simple and can be conveyed with fast cuts" or "Chose 55 seconds because the narrative requires more context for the audience to understand the stakes."
+For example: "Chose 90 seconds because the fight has six distinct beats each requiring a full 15-second segment to land the impact" or "Chose 60 seconds because the topic is tight and punchy with a clean three-act structure."
 
 Return valid JSON only in this exact shape:
 {
@@ -127,7 +186,7 @@ Return valid JSON only in this exact shape:
       "durationSec": 12,
       "beat": "Hook",
       "narration": "The actual spoken script for this segment",
-      "visualDirection": "How this segment should be staged visually"
+      "visualDirection": "How this segment should be staged visually in anime style"
     }
   ],
   "durationReason": "Why this total duration was chosen"

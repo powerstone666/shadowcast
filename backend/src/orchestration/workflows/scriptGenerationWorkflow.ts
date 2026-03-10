@@ -1,7 +1,7 @@
 import { Annotation, END, START, StateGraph } from "@langchain/langgraph";
 import { z } from "zod";
 
-import { ConflictError } from "../errors.js";
+import { ConflictError, isWorkflowTerminatedError } from "../errors.js";
 import { loadPrompt } from "../prompts/loadPrompt.js";
 import { AgentRuntime } from "../runtime/AgentRuntime.js";
 import { getNativeSearchExtraBody } from "../runtime/nativeSearchSupport.js";
@@ -50,10 +50,19 @@ export const scriptPackageSchema = z.object({
   summary: z.string().trim().min(1),
 });
 
-const scriptResearchQueryPrompt = loadPrompt("scriptResearchQueryPrompt.txt", import.meta.url);
-const scriptNativeResearchPrompt = loadPrompt("scriptNativeResearchPrompt.txt", import.meta.url);
+const scriptResearchQueryPrompt = loadPrompt(
+  "scriptResearchQueryPrompt.txt",
+  import.meta.url,
+);
+const scriptNativeResearchPrompt = loadPrompt(
+  "scriptNativeResearchPrompt.txt",
+  import.meta.url,
+);
 
-const scriptGenerationPrompt = loadPrompt("scriptGenerationPrompt.txt", import.meta.url);
+const scriptGenerationPrompt = loadPrompt(
+  "scriptGenerationPrompt.txt",
+  import.meta.url,
+);
 
 type ResearchBundle = {
   query: string;
@@ -124,7 +133,10 @@ export class ScriptGenerationWorkflow {
   }
 
   async run(input: WorkflowInput): Promise<ScriptGenerationResult> {
-    const cachedResult = await workflowCacheService.getCachedResult<ScriptGenerationResult>("scriptGeneration");
+    const cachedResult =
+      await workflowCacheService.getCachedResult<ScriptGenerationResult>(
+        "scriptGeneration",
+      );
     if (cachedResult) {
       pipelineRealtimeService.appendLog("loaded script generation from cache");
       return cachedResult;
@@ -141,16 +153,23 @@ export class ScriptGenerationWorkflow {
       throw new Error("Script generation workflow did not produce a result");
     }
 
-    await workflowCacheService.saveResult("scriptGeneration", finalState.result);
+    await workflowCacheService.saveResult(
+      "scriptGeneration",
+      finalState.result,
+    );
     return finalState.result;
   }
 
   private buildGraph() {
     return new StateGraph(ScriptGenerationState)
       .addNode("loadContext", async (state) => this.loadContext(state))
-      .addNode("generateResearchQueries", async (state) => this.generateResearchQueries(state))
+      .addNode("generateResearchQueries", async (state) =>
+        this.generateResearchQueries(state),
+      )
       .addNode("researchTopic", async (state) => this.researchTopic(state))
-      .addNode("writeScriptPackage", async (state) => this.writeScriptPackage(state))
+      .addNode("writeScriptPackage", async (state) =>
+        this.writeScriptPackage(state),
+      )
       .addEdge(START, "loadContext")
       .addEdge("loadContext", "generateResearchQueries")
       .addEdge("generateResearchQueries", "researchTopic")
@@ -163,7 +182,10 @@ export class ScriptGenerationWorkflow {
     state: ScriptGenerationStateType,
   ): Promise<Partial<ScriptGenerationStateType>> {
     workflowControlService.ensureNotTerminated();
-    this.logger.info("Loading context", { genre: state.genre, topic: state.topic });
+    this.logger.info("Loading context", {
+      genre: state.genre,
+      topic: state.topic,
+    });
     const genre = state.genre.trim();
     if (!genre) {
       throw new ConflictError("Genre is required");
@@ -186,10 +208,11 @@ export class ScriptGenerationWorkflow {
       throw new ConflictError(`Genre "${genre}" is not configured`);
     }
 
-    const recentContent = await this.contentMemoryService.getRecentContent(RECENT_HISTORY_DAYS);
-    this.logger.info("Context loaded", { 
-      configuredGenresCount: configuredGenres.length, 
-      recentContentCount: recentContent.length 
+    const recentContent =
+      await this.contentMemoryService.getRecentContent(RECENT_HISTORY_DAYS);
+    this.logger.info("Context loaded", {
+      configuredGenresCount: configuredGenres.length,
+      recentContentCount: recentContent.length,
     });
 
     return {
@@ -265,33 +288,47 @@ export class ScriptGenerationWorkflow {
           state.researchQueries,
           nativeResearch.researchBundles,
         );
-        this.logger.info("Native research successful", { bundleCount: bundles.length });
+        this.logger.info("Native research successful", {
+          bundleCount: bundles.length,
+        });
 
         return {
           researchBundles: bundles,
         };
       } catch (error) {
-        this.logger.error("Native research failed", { error: toErrorMessage(error) });
+        if (isWorkflowTerminatedError(error)) throw error;
+        this.logger.error("Native research failed", {
+          error: toErrorMessage(error),
+        });
         pipelineRealtimeService.appendLog(
           `native research fallback: ${toErrorMessage(error)}`,
         );
       }
     }
 
-    this.logger.info("Attempting Tavily research", { queries: state.researchQueries });
-    
+    this.logger.info("Attempting Tavily research", {
+      queries: state.researchQueries,
+    });
+
     // Prepare queries for batch search
-    const queries = state.researchQueries.map((query) => ({ query, mode: "auto" as const }));
-    
+    const queries = state.researchQueries.map((query) => ({
+      query,
+      mode: "auto" as const,
+    }));
+
     // Use batch search for efficiency
     const batchResults = await this.searchService.batchSearch(queries, 2); // concurrency limit of 2
-    
+
     const researchBundles = state.researchQueries.map((query) => {
       const results = batchResults.get(query) || [];
       if (results.length > 0) {
-        this.logger.info(`Tavily search results for "${query}"`, { count: results.length });
+        this.logger.info(`Tavily search results for "${query}"`, {
+          count: results.length,
+        });
       } else {
-        this.logger.warn(`Tavily search failed for "${query}" - no results returned`);
+        this.logger.warn(
+          `Tavily search failed for "${query}" - no results returned`,
+        );
         pipelineRealtimeService.appendLog(
           `research search exhausted for "${query}": no results returned; continuing with empty results`,
         );
@@ -332,10 +369,10 @@ export class ScriptGenerationWorkflow {
       ...(signal ? { signal } : {}),
     });
 
-    this.logger.info("Script package written", { 
-      title: result.title, 
+    this.logger.info("Script package written", {
+      title: result.title,
       topic: result.topic,
-      storyLength: result.story.length 
+      storyLength: result.story.length,
     });
 
     return {
@@ -345,13 +382,19 @@ export class ScriptGenerationWorkflow {
 }
 
 function normalizeGenres(genres: string[]): string[] {
-  return Array.from(new Set(genres.map((genre) => genre.trim()).filter(Boolean)));
+  return Array.from(
+    new Set(genres.map((genre) => genre.trim()).filter(Boolean)),
+  );
 }
 
 function normalizeQueries(queries: string[]): string[] {
-  const normalizedQueries = Array.from(new Set(queries.map((query) => query.trim()).filter(Boolean)));
+  const normalizedQueries = Array.from(
+    new Set(queries.map((query) => query.trim()).filter(Boolean)),
+  );
   if (normalizedQueries.length !== 3) {
-    throw new Error("Script research queries must contain exactly three unique queries");
+    throw new Error(
+      "Script research queries must contain exactly three unique queries",
+    );
   }
 
   return normalizedQueries;
@@ -365,9 +408,13 @@ function normalizeResearchBundles(
     researchBundles.map((bundle) => [bundle.query.trim(), bundle]),
   );
 
-  const missingQueries = expectedQueries.filter((query) => !bundleByQuery.has(query));
+  const missingQueries = expectedQueries.filter(
+    (query) => !bundleByQuery.has(query),
+  );
   if (missingQueries.length > 0) {
-    throw new Error(`Research bundles missing for queries: ${missingQueries.join(", ")}`);
+    throw new Error(
+      `Research bundles missing for queries: ${missingQueries.join(", ")}`,
+    );
   }
 
   return expectedQueries.map((query) => ({

@@ -17,21 +17,67 @@ You receive:
 - recent genre usage derived from that content
 - current search results grouped by genre
 
-DIALOGUE PRIORITY (MANDATORY):
-- Prioritize topics that naturally allow characters to actively talk to each other with clear spoken dialogue.
-- Favor topics that can be staged with synchronized lip movements in generated video.
-- Dialogue should be the main focus; any music should remain very light ambient background only and must never dominate.
+---
 
-Selection rules:
-- Select exactly one genre to post next.
-- You must choose only from configured genres.
-- If a user preference is provided, strongly prioritize aligning the chosen genre, topic, and title to this preference.
-- Strongly prioritize what is hottest right now (current momentum and recency), not older evergreen narratives, unless the user preference demands otherwise.
-- Use recent search signals as primary evidence for "hot now" ranking.
-- Treat currentDate/currentYear as the default timeline anchor.
-- Do not frame topic/title around older years (for example 2024) unless search evidence explicitly proves that older-year framing is still the active trend now.
-- Avoid repeating recently overused genres unless current momentum is clearly and significantly stronger.
-- Do not choose a topic already covered recently unless the new angle is clearly fresher, stronger, and more entertaining.
+GENRE CLASS — Read this before selecting anything.
+
+Genres fall into two classes. The class determines HOW you pick the topic.
+
+**CLASS 1 — TIMELESS GENRES**
+Mythology, Horror, Fantasy, Folklore, Martial Arts, Legend, Sci-Fi, Romance, Tragedy, Supernatural
+
+For these genres the BEST topic is NOT the most recent adaptation, game release, or streaming title.
+It is the most compelling ORIGINAL SOURCE MATERIAL — the foundational story, epic, scripture, folk tale, or legend that the audience actually wants to see told.
+
+SOURCE MATERIAL HIERARCHY for Timeless Genres (apply strictly in this order):
+1. Original canonical texts and scriptures — the actual epic, novel, scripture, or foundational story.
+   - Wukong → Journey to the West (16th century Chinese novel). NOT Black Myth: Wukong (2024 video game).
+   - Greek mythology → Homer's Iliad/Odyssey, Hesiod's Theogony. NOT a 2026 movie adaptation.
+   - Horror → the originating legend, folk tale, or world-famous classic. NOT a Netflix 2026 release.
+2. Classic folklore and oral tradition — stories passed down for generations across cultures.
+3. World-famous, most-loved stories in that genre — the ones that have endured because they are genuinely compelling.
+   - Horror: The Tell-Tale Heart, Dracula, Frankenstein, Japanese Kuchisake-onna, Slenderman origin, The Banshee, La Llorona.
+   - Mythology: Ramayana battles, Mahabharata turning points, Norse Ragnarok, Hercules labors, Medusa's origin.
+   - Martial Arts/Legend: Sun Wukong's 72 transformations, The Water Margin heroes, legendary duel stories.
+4. Classic adaptations with decades of proven cultural staying power.
+
+WHAT TO TREAT AS EVIDENCE, NOT AS THE TOPIC:
+- A recent video game (Black Myth: Wukong) appearing in search results = evidence that the original story (Journey to the West) is in strong cultural consciousness right now. USE THAT SIGNAL to pick the original story as the topic.
+- A recent Netflix/streaming release in a timeless genre = evidence of audience appetite for that genre. Pick the foundational story or folk legend, NOT the Netflix show.
+- A recent movie adaptation = evidence the myth is relevant. Tell the ORIGINAL myth, not the movie.
+
+The topic for a Timeless Genre should ALWAYS be traceable to a real, foundational source — a text, a legend, a folk tale, a classic story. Never a product release.
+
+**CLASS 2 — RECENCY-APPROPRIATE GENRES**
+News, Current Events, Technology, Science, Politics, Economics, Business, Sports (recent), Health
+
+For these genres, recency and trending momentum ARE appropriate primary signals. Current events, recent discoveries, and trending stories are legitimate topics. Use search results to find what is genuinely hot right now.
+
+---
+
+SELECTION RULES:
+
+- Select exactly one genre to post next from the configured genres.
+- First, identify which class the genre belongs to (Timeless or Recency-Appropriate).
+- If a user preference is provided, strongly prioritize aligning the chosen genre, topic, and title to that preference.
+- Avoid repeating recently overused genres unless the story angle is clearly different and stronger.
+- Do not choose a topic already covered recently unless the new angle is clearly fresher and more compelling.
+- Treat currentDate/currentYear as the timeline anchor for Recency genres. For Timeless genres, the year is irrelevant to topic choice — a great story from 200 BCE is still a great story.
+
+FOR TIMELESS GENRES — topic selection:
+- Ask: "What is the most famous, compelling, and emotionally rich story within this genre that the audience would want to see brought to life?"
+- Prefer stories with a clear conflict, a dramatic turning point, a legendary character doing something extraordinary, or a folk horror premise that has terrified people for generations.
+- A topic like "The fight where Sun Wukong defeated the Bull Demon King from Journey to the West" is CORRECT.
+- A topic like "Black Myth: Wukong game story recap" is WRONG — it is a product, not a story.
+- A topic like "Classic horror legends: the origin of La Llorona" is CORRECT.
+- A topic like "Netflix horror movie review 2026" is WRONG — it is a product, not a story.
+
+FOR RECENCY-APPROPRIATE GENRES — topic selection:
+- Use current search signals as primary evidence.
+- Pick what is genuinely relevant and trending right now with strong narrative potential.
+- Frame through the human angle — decisions made, stakes faced, outcomes felt.
+
+---
 
 You must also choose:
 - one specific Shorts-ready topic within that genre
@@ -40,18 +86,19 @@ You must also choose:
 Topic and title quality bar:
 - Topic should be concrete, story-focused, and easy to visualize in a short-form video.
 - Title should be punchy, human, and curiosity-driven about the story or incident.
-- Use story-focused language: "The Day...", "How...", "When...", "Why..."
+- Use story-focused language: "The Day...", "How...", "When...", "Why...", "The Fight That..."
 - Prefer plain language with high emotional clarity.
 
 Reason quality bar:
 - Explain why this genre-topic pair will likely perform now.
-- Mention trend strength, recency, audience interest, and novelty versus recent uploads.
+- For Timeless genres: explain which foundational source the topic comes from and why it resonates with today's audience.
+- For Recency genres: explain the trend strength, recency, and audience interest.
 - Highlight the story potential and narrative appeal of the selected topic.
 
 Return valid JSON only in this exact shape:
 {
-  "selectedGenre": "History",
-  "topic": "New historical topic angle",
-  "title": "YouTube-ready title",
-  "reason": "History has the strongest current search momentum while avoiding the most recently repeated genre."
+  "selectedGenre": "Mythology",
+  "topic": "Sun Wukong vs the Bull Demon King — the decisive battle from Journey to the West",
+  "title": "The Day Wukong Faced His Greatest Enemy",
+  "reason": "Journey to the West is the foundational source for all Wukong content. The Bull Demon King battle is one of the most dramatic confrontations in the novel and gives a clear fight sequence with high emotional stakes. Recent game releases signal strong cultural appetite for this source material — making now the right time to tell the original story."
 }

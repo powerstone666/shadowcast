@@ -1,5 +1,6 @@
 import cron from "node-cron";
 import { Logger } from "../utils/commonUtils.js";
+import { isWorkflowTerminatedError } from "../orchestration/errors.js";
 import { workflowControlService } from "./workflowControlService.js";
 import { pipelineRealtimeService } from "./pipelineRealtimeService.js";
 import { UserPreferencesService } from "./userPreferencesService.js";
@@ -18,19 +19,19 @@ const logger = new Logger("scheduler");
 //   Slot 2: 12:00 — lunch break
 //   Slot 3: 19:00 — peak evening
 const SCHEDULE_SLOTS = [
-  { cron: "0 7 * * *",  label: "morning (07:00)"  },
-  { cron: "0 12 * * *", label: "lunch (12:00)"    },
-  {cron: "0  17 * * *",label:  "evening (17:00)"  },
-  { cron: "0 20 * * *", label: "evening (20:00)"  },
+  { cron: "0 7 * * *", label: "morning (07:00)" },
+  { cron: "0 12 * * *", label: "lunch (12:00)" },
+  { cron: "0  17 * * *", label: "evening (17:00)" },
+  { cron: "0 20 * * *", label: "evening (20:00)" },
 ];
 
 const userPreferencesService = new UserPreferencesService();
-const genreSelectionWorkflow  = new GenreSelectionWorkflow();
+const genreSelectionWorkflow = new GenreSelectionWorkflow();
 const scriptGenerationWorkflow = new ScriptGenerationWorkflow();
-const councilReviewWorkflow    = new CouncilReviewWorkflow();
-const directorPlanWorkflow     = new DirectorPlanWorkflow();
-const videoGenerationWorkflow  = new VideoGenerationWorkflow();
-const youtubePublishWorkflow   = new YoutubePublishWorkflow();
+const councilReviewWorkflow = new CouncilReviewWorkflow();
+const directorPlanWorkflow = new DirectorPlanWorkflow();
+const videoGenerationWorkflow = new VideoGenerationWorkflow();
+const youtubePublishWorkflow = new YoutubePublishWorkflow();
 
 async function runScheduledPipeline(): Promise<void> {
   let runContext: { runId: string; signal: AbortSignal } | undefined;
@@ -48,16 +49,24 @@ async function runScheduledPipeline(): Promise<void> {
     // Get audio language preference
     const languagePref = await userPreferencesService.getAudioLanguage();
     const userPreference = `audio language: ${languagePref.language}`;
-    
-    pipelineRealtimeService.beginStage("genre_selection", "genre selection started");
-    const genreSelectionResult = await genreSelectionWorkflow.run({ userPreference });
+
+    pipelineRealtimeService.beginStage(
+      "genre_selection",
+      "genre selection started",
+    );
+    const genreSelectionResult = await genreSelectionWorkflow.run({
+      userPreference,
+    });
     workflowControlService.ensureNotTerminated();
     pipelineRealtimeService.completeStage(
       "genre_selection",
       `genre selected: ${genreSelectionResult.selectedGenre.toLowerCase()}`,
     );
 
-    pipelineRealtimeService.beginStage("script_generation", "script generation started");
+    pipelineRealtimeService.beginStage(
+      "script_generation",
+      "script generation started",
+    );
     const scriptGenerationResult = await scriptGenerationWorkflow.run({
       genre: genreSelectionResult.selectedGenre,
       topic: genreSelectionResult.topic,
@@ -65,9 +74,15 @@ async function runScheduledPipeline(): Promise<void> {
       userPreference,
     });
     workflowControlService.ensureNotTerminated();
-    pipelineRealtimeService.completeStage("script_generation", "script generated");
+    pipelineRealtimeService.completeStage(
+      "script_generation",
+      "script generated",
+    );
 
-    pipelineRealtimeService.beginStage("council_review", "council review started");
+    pipelineRealtimeService.beginStage(
+      "council_review",
+      "council review started",
+    );
     const councilReviewResult = await councilReviewWorkflow.run({
       genre: genreSelectionResult.selectedGenre,
       topic: scriptGenerationResult.topic,
@@ -77,9 +92,15 @@ async function runScheduledPipeline(): Promise<void> {
       summary: scriptGenerationResult.summary,
     });
     workflowControlService.ensureNotTerminated();
-    pipelineRealtimeService.completeStage("council_review", "council review completed");
+    pipelineRealtimeService.completeStage(
+      "council_review",
+      "council review completed",
+    );
 
-    pipelineRealtimeService.beginStage("director_plan", "director plan started");
+    pipelineRealtimeService.beginStage(
+      "director_plan",
+      "director plan started",
+    );
     const directorPlanResult = await directorPlanWorkflow.run({
       genre: genreSelectionResult.selectedGenre,
       topic: councilReviewResult.scriptPackage.topic,
@@ -89,9 +110,15 @@ async function runScheduledPipeline(): Promise<void> {
       summary: councilReviewResult.scriptPackage.summary,
     });
     workflowControlService.ensureNotTerminated();
-    pipelineRealtimeService.completeStage("director_plan", "director plan completed");
+    pipelineRealtimeService.completeStage(
+      "director_plan",
+      "director plan completed",
+    );
 
-    pipelineRealtimeService.beginStage("video_generation", "video generation started");
+    pipelineRealtimeService.beginStage(
+      "video_generation",
+      "video generation started",
+    );
     const videoGenerationResult = await videoGenerationWorkflow.run({
       genre: genreSelectionResult.selectedGenre,
       topic: councilReviewResult.scriptPackage.topic,
@@ -100,6 +127,7 @@ async function runScheduledPipeline(): Promise<void> {
       story: councilReviewResult.scriptPackage.story,
       summary: councilReviewResult.scriptPackage.summary,
       breakdown: directorPlanResult.breakdown,
+      userPreference,
     });
     workflowControlService.ensureNotTerminated();
     pipelineRealtimeService.completeStage(
@@ -107,7 +135,10 @@ async function runScheduledPipeline(): Promise<void> {
       `video generation completed: ${videoGenerationResult.segments.length} segments`,
     );
 
-    pipelineRealtimeService.beginStage("youtube_publish", "youtube publish started");
+    pipelineRealtimeService.beginStage(
+      "youtube_publish",
+      "youtube publish started",
+    );
     await youtubePublishWorkflow.run({
       genre: genreSelectionResult.selectedGenre,
       title: councilReviewResult.scriptPackage.title,
@@ -116,13 +147,33 @@ async function runScheduledPipeline(): Promise<void> {
       stitchedVideoPath: videoGenerationResult.stitchedVideoPath,
       videoTempDir: videoGenerationResult.tempDir,
     });
-    pipelineRealtimeService.completeStage("youtube_publish", "published to youtube");
+    pipelineRealtimeService.completeStage(
+      "youtube_publish",
+      "published to youtube",
+    );
 
-    logger.info("Scheduled pipeline run completed successfully", { runId: runContext.runId });
+    logger.info("Scheduled pipeline run completed successfully", {
+      runId: runContext.runId,
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    logger.error("Scheduled pipeline run failed", { runId: runContext.runId, error: message });
-    pipelineRealtimeService.appendLog(`Scheduled run failed: ${message}`);
+    logger.error("Scheduled pipeline run failed", {
+      runId: runContext.runId,
+      error: message,
+    });
+
+    if (isWorkflowTerminatedError(error)) {
+      // terminateRun is idempotent — safe to call even if the terminate route already called it
+      pipelineRealtimeService.terminateRun("scheduled run terminated");
+    } else {
+      const activeStageKey =
+        pipelineRealtimeService.getSnapshot().activeStageKey;
+      if (activeStageKey) {
+        pipelineRealtimeService.failStage(activeStageKey, message);
+      } else {
+        pipelineRealtimeService.appendLog(`Scheduled run failed: ${message}`);
+      }
+    }
   } finally {
     await workflowControlService.finishRun(runContext.runId);
   }

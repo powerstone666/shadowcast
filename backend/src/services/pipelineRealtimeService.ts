@@ -134,6 +134,12 @@ export class PipelineRealtimeService {
   }
 
   terminateRun(message: string): void {
+    // Idempotent — the terminate route and the in-flight request's catch block
+    // both call this; whichever arrives second must not reset the snapshot again.
+    if (this.snapshot.runOutcome === "terminated") {
+      return;
+    }
+
     this.snapshot = {
       ...this.snapshot,
       started: false,
@@ -184,7 +190,10 @@ export class PipelineRealtimeService {
       }
 
       if (payload.type === "test_connection") {
-        void this.testConnectService.runAllChecks(payload.mode, payload.roleKey);
+        void this.testConnectService.runAllChecks(
+          payload.mode,
+          payload.roleKey,
+        );
       }
     } catch {
       // ignore malformed client messages
@@ -214,7 +223,9 @@ export class PipelineRealtimeService {
 }
 
 function formatStageLabel(stageKey: PipelineStageKey): string {
-  return PIPELINE_STAGES.find((stage) => stage.key === stageKey)?.label ?? stageKey;
+  return (
+    PIPELINE_STAGES.find((stage) => stage.key === stageKey)?.label ?? stageKey
+  );
 }
 
 export const pipelineRealtimeService = new PipelineRealtimeService();

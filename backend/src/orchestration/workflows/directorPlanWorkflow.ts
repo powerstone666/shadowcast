@@ -1,7 +1,7 @@
 import { Annotation, END, START, StateGraph } from "@langchain/langgraph";
 import { z } from "zod";
 
-import { ConflictError } from "../errors.js";
+import { ConflictError, isWorkflowTerminatedError } from "../errors.js";
 import { loadPrompt } from "../prompts/loadPrompt.js";
 import { AgentRuntime } from "../runtime/AgentRuntime.js";
 import { GenreConfigService } from "../../services/genreConfigService.js";
@@ -29,7 +29,10 @@ const directorPlanResponseSchema = z.object({
   durationReason: z.string().trim().min(1),
 });
 
-const directorPlanPrompt = loadPrompt("directorPlanPrompt.txt", import.meta.url);
+const directorPlanPrompt = loadPrompt(
+  "directorPlanPrompt.txt",
+  import.meta.url,
+);
 
 export const directorPlanInputSchema = scriptPackageSchema.extend({
   genre: z.string().trim().min(1),
@@ -81,7 +84,10 @@ export class DirectorPlanWorkflow {
   }
 
   async run(input: DirectorPlanInput): Promise<DirectorPlanResult> {
-    const cachedResult = await workflowCacheService.getCachedResult<DirectorPlanResult>("directorPlan");
+    const cachedResult =
+      await workflowCacheService.getCachedResult<DirectorPlanResult>(
+        "directorPlan",
+      );
     if (cachedResult) {
       pipelineRealtimeService.appendLog("loaded director plan from cache");
       return cachedResult;
@@ -109,7 +115,9 @@ export class DirectorPlanWorkflow {
   private buildGraph() {
     return new StateGraph(DirectorPlanState)
       .addNode("loadContext", async (state) => this.loadContext(state))
-      .addNode("createDirectorPlan", async (state) => this.createDirectorPlan(state))
+      .addNode("createDirectorPlan", async (state) =>
+        this.createDirectorPlan(state),
+      )
       .addNode("formatResult", async (state) => this.formatResult(state))
       .addEdge(START, "loadContext")
       .addEdge("loadContext", "createDirectorPlan")
@@ -155,16 +163,18 @@ export class DirectorPlanWorkflow {
       throw new Error("Script package is missing");
     }
 
-    this.logger.info("Creating director plan", { topic: state.scriptPackage.topic });
+    this.logger.info("Creating director plan", {
+      topic: state.scriptPackage.topic,
+    });
     const signal = workflowControlService.getActiveSignal();
 
     let lastError: Error | undefined;
     const maxAttempts = 3;
-    
+
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
         this.logger.info(`Director plan attempt ${attempt}/${maxAttempts}`);
-        
+
         let response;
         try {
           response = await this.agentRuntime.invokeStructuredJson({
@@ -178,10 +188,13 @@ export class DirectorPlanWorkflow {
                   maxSegmentDurationSec: MAX_SEGMENT_DURATION_SEC,
                   maxTotalDurationSec: MAX_TOTAL_DURATION_SEC,
                 },
-                ...(attempt > 1 && lastError ? { 
-                  previousError: lastError.message,
-                  instruction: "Please ensure all segments have durationSec field and total duration does not exceed 120 seconds. Each segment must have order, durationSec, beat, narration, and visualDirection." 
-                } : {}),
+                ...(attempt > 1 && lastError
+                  ? {
+                      previousError: lastError.message,
+                      instruction:
+                        "Please ensure all segments have durationSec field and total duration does not exceed 120 seconds. Each segment must have order, durationSec, beat, narration, and visualDirection.",
+                    }
+                  : {}),
               },
               null,
               2,
@@ -191,15 +204,21 @@ export class DirectorPlanWorkflow {
           });
         } catch (invokeError: unknown) {
           // Convert Zod errors to more readable messages
-          if (invokeError instanceof Error && (invokeError.message.includes('invalid_type') || invokeError.message.includes('Required'))) {
-            throw new Error(`Invalid segment data: Please ensure all segments have order, durationSec (number), beat, narration, and visualDirection fields. Check segment durations are numbers.`);
+          if (
+            invokeError instanceof Error &&
+            (invokeError.message.includes("invalid_type") ||
+              invokeError.message.includes("Required"))
+          ) {
+            throw new Error(
+              `Invalid segment data: Please ensure all segments have order, durationSec (number), beat, narration, and visualDirection fields. Check segment durations are numbers.`,
+            );
           }
           throw invokeError;
         }
 
         const breakdown = validateDirectorBreakdown(response.breakdown);
-        this.logger.info("Director plan created", { 
-          segmentCount: breakdown.length, 
+        this.logger.info("Director plan created", {
+          segmentCount: breakdown.length,
           durationReason: response.durationReason,
           attempt,
         });
@@ -209,18 +228,21 @@ export class DirectorPlanWorkflow {
           durationReason: response.durationReason,
         };
       } catch (error) {
+        if (isWorkflowTerminatedError(error)) throw error;
         lastError = error instanceof Error ? error : new Error(String(error));
-        this.logger.warn(`Director plan attempt ${attempt} failed`, { 
+        this.logger.warn(`Director plan attempt ${attempt} failed`, {
           error: lastError.message,
           attempt,
         });
-        
+
         if (attempt === maxAttempts) {
-          throw new Error(`Director plan failed after ${maxAttempts} attempts: ${lastError.message}`);
+          throw new Error(
+            `Director plan failed after ${maxAttempts} attempts: ${lastError.message}`,
+          );
         }
-        
+
         // Wait briefly before retry
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
     }
 
@@ -232,7 +254,10 @@ export class DirectorPlanWorkflow {
     state: DirectorPlanStateType,
   ): Promise<Partial<DirectorPlanStateType>> {
     const totalDurationSec = roundDuration(
-      state.breakdown.reduce((total, segment) => total + segment.durationSec, 0),
+      state.breakdown.reduce(
+        (total, segment) => total + segment.durationSec,
+        0,
+      ),
     );
 
     return {
@@ -246,17 +271,23 @@ export class DirectorPlanWorkflow {
 }
 
 function normalizeGenres(genres: string[]): string[] {
-  return Array.from(new Set(genres.map((genre) => genre.trim()).filter(Boolean)));
+  return Array.from(
+    new Set(genres.map((genre) => genre.trim()).filter(Boolean)),
+  );
 }
 
 export function validateDirectorBreakdown(
   breakdown: DirectorSegment[],
 ): DirectorSegment[] {
-  const sortedBreakdown = [...breakdown].sort((left, right) => left.order - right.order);
+  const sortedBreakdown = [...breakdown].sort(
+    (left, right) => left.order - right.order,
+  );
 
   sortedBreakdown.forEach((segment, index) => {
     if (segment.order !== index + 1) {
-      throw new Error("Director breakdown order must be sequential starting from 1");
+      throw new Error(
+        "Director breakdown order must be sequential starting from 1",
+      );
     }
 
     if (segment.durationSec > MAX_SEGMENT_DURATION_SEC) {

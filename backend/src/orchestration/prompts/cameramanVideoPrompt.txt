@@ -79,11 +79,42 @@ VIDEO STYLE RULES:
 - For dialogue shots, include explicit lip-sync guidance in videoPrompt, such as: "speaker faces camera in anime style, mouth movements accurately synchronized to the spoken line".
 - **MUSIC DIRECTION**: Visuals should match "fast-paced, energetic background score" - create scenes that feel urgent and engaging.
 
-**LANGUAGE PRESERVATION:**
-- Detect the language of the narration in the current segment — it will be either Hindi (Devanagari script: हिंदी) or English.
-- The narration field in your output MUST be in the EXACT SAME LANGUAGE as the segment narration you received. Do NOT translate it.
-- Quoted dialogue lines inside videoPrompt (speech bubbles, subtitle text, spoken lines) MUST also be in the same language as the narration. If narration is Hindi, all on-screen dialogue text must be Hindi. If English, all on-screen dialogue text must be English.
-- The visual description portions of videoPrompt may be written in English for optimal video model performance, but any quoted spoken lines or on-screen character speech within videoPrompt must match the narration language.
+**LANGUAGE — Read userPreference first and apply absolutely to narration AND videoPrompt.**
+
+Step 1: Determine the audio language from userPreference.
+- If userPreference contains "audio language: hindi" → Hindi (हिंदी) is the audio language.
+- If userPreference contains "audio language: english" → English is the audio language.
+- If no userPreference is provided, use the language of the narration you received in currentSegment.
+
+Step 2: Apply to the narration field.
+- The narration field in your output MUST be in the audio language determined above.
+- Copy it EXACTLY from the synced segment you received — do NOT translate, rephrase, or alter it in any way.
+
+Step 3: Apply to videoPrompt — all spoken lines and on-screen text.
+- Any quoted dialogue lines in videoPrompt (character speech, speech bubbles, subtitle text, spoken lines) MUST be in the audio language.
+- If Hindi: all character speech and subtitle text in videoPrompt must be in Hindi (Devanagari script).
+- If English: all character speech and subtitle text in videoPrompt must be in English.
+- The visual scene description parts of videoPrompt (scene staging, camera movement, visual style) may be written in English for optimal video model performance — but spoken content MUST be in the audio language.
+
+Step 4: Add an explicit language lock directive at the VERY START of every videoPrompt.
+The text-to-video AI model may try to infer language from the story's cultural content (e.g., seeing Chinese character names and switching to Chinese audio). To prevent this, the FIRST line of every videoPrompt you write MUST be a hard language lock:
+- For English: "ALL NARRATION AND SPOKEN DIALOGUE IN THIS VIDEO MUST BE IN ENGLISH ONLY."
+- For Hindi: "इस वीडियो में सभी नैरेशन और बोले गए संवाद केवल हिंदी में होने चाहिए।"
+This directive must appear before any scene description in every single videoPrompt. Do not skip it, do not move it.
+
+**CONTENT ORIGIN ≠ AUDIO LANGUAGE — This is absolute and overrides any inference:**
+- A video ABOUT Wukong, Journey to the West, or Chinese mythology does NOT mean audio should be in Chinese. The language is set by userPreference, not by the story's cultural source.
+- A video ABOUT Japanese horror for an English channel speaks in English — characters do not switch to Japanese.
+- A video ABOUT Norse mythology for a Hindi channel speaks in Hindi — characters do not speak Old Norse or any Scandinavian language.
+- A video ABOUT Indian folklore for an English channel speaks in English — characters do not speak Sanskrit or any regional Indian language.
+- A video ABOUT Greek mythology, Egyptian legend, or any non-English/non-Hindi culture still uses the language from userPreference for all audio.
+- The cultural origin, character names, mythology source country, or story setting has ZERO effect on the audio language. Only userPreference determines it.
+
+NEVER:
+- Include Chinese, Japanese, Arabic, Korean, or any non-specified language text in dialogue, speech bubbles, narration, or subtitle instructions in videoPrompt.
+- Skip the language lock directive at the start of videoPrompt — it is mandatory on every segment.
+- Mix audio languages within a single segment's videoPrompt.
+- Let the visual description of a culturally foreign setting cause you to change the audio language.
 
 CONTENT SAFETY (ABSOLUTE PRIORITY — violations cause generation failure):
 - The videoPrompt is sent to an AI video generator with strict content policies.

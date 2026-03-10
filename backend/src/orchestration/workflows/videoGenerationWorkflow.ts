@@ -53,11 +53,15 @@ const generatedVideoSegmentSchema = z.object({
 
 const videoSyncPrompt = loadPrompt("videoSyncPrompt.txt", import.meta.url);
 
-const cameramanVideoPrompt = loadPrompt("cameramanVideoPrompt.txt", import.meta.url);
+const cameramanVideoPrompt = loadPrompt(
+  "cameramanVideoPrompt.txt",
+  import.meta.url,
+);
 
 export const videoGenerationInputSchema = scriptPackageSchema.extend({
   genre: z.string().trim().min(1),
   breakdown: z.array(directorSegmentSchema).min(1),
+  userPreference: z.string().trim().min(1).optional(),
 });
 
 type VideoGenerationInput = z.infer<typeof videoGenerationInputSchema>;
@@ -76,6 +80,10 @@ const VideoGenerationState = Annotation.Root({
   genre: Annotation<string>({
     reducer: (_, right) => right,
     default: () => "",
+  }),
+  userPreference: Annotation<string | undefined>({
+    reducer: (_, right) => right,
+    default: () => undefined,
   }),
   scriptPackage: Annotation<ScriptGenerationResult | undefined>({
     reducer: (_, right) => right,
@@ -123,7 +131,10 @@ export class VideoGenerationWorkflow {
   }
 
   async run(input: VideoGenerationInput): Promise<VideoGenerationResult> {
-    const cachedResult = await workflowCacheService.getCachedResult<VideoGenerationResult>("videoGeneration");
+    const cachedResult =
+      await workflowCacheService.getCachedResult<VideoGenerationResult>(
+        "videoGeneration",
+      );
     if (cachedResult) {
       pipelineRealtimeService.appendLog("loaded video generation from cache");
       return cachedResult;
@@ -131,6 +142,7 @@ export class VideoGenerationWorkflow {
 
     const finalState = await this.graph.invoke({
       genre: input.genre.trim(),
+      userPreference: input.userPreference,
       scriptPackage: {
         topic: input.topic.trim(),
         title: input.title.trim(),
@@ -152,8 +164,12 @@ export class VideoGenerationWorkflow {
   private buildGraph() {
     return new StateGraph(VideoGenerationState)
       .addNode("loadContext", async (state) => this.loadContext(state))
-      .addNode("createSyncedSegments", async (state) => this.createSyncedSegments(state))
-      .addNode("createVideoSegments", async (state) => this.createVideoSegments(state))
+      .addNode("createSyncedSegments", async (state) =>
+        this.createSyncedSegments(state),
+      )
+      .addNode("createVideoSegments", async (state) =>
+        this.createVideoSegments(state),
+      )
       .addNode("stitchVideo", async (state) => this.stitchVideo(state))
       .addNode("formatResult", async (state) => this.formatResult(state))
       .addEdge(START, "loadContext")
@@ -195,10 +211,16 @@ export class VideoGenerationWorkflow {
   private async createSyncedSegments(
     state: VideoGenerationStateType,
   ): Promise<Partial<VideoGenerationStateType>> {
-    const cachedResult = await workflowCacheService.getCachedResult<SyncedSegment[]>("videoSyncedSegments");
+    const cachedResult = await workflowCacheService.getCachedResult<
+      SyncedSegment[]
+    >("videoSyncedSegments");
     if (cachedResult) {
-      this.logger.info("Loaded synced segments from cache", { count: cachedResult.length });
-      pipelineRealtimeService.appendLog("loaded director sync package from cache");
+      this.logger.info("Loaded synced segments from cache", {
+        count: cachedResult.length,
+      });
+      pipelineRealtimeService.appendLog(
+        "loaded director sync package from cache",
+      );
       return { syncedSegments: cachedResult };
     }
 
@@ -207,7 +229,9 @@ export class VideoGenerationWorkflow {
       throw new Error("Script package is missing");
     }
 
-    this.logger.info("Creating synced segments", { segmentCount: state.breakdown.length });
+    this.logger.info("Creating synced segments", {
+      segmentCount: state.breakdown.length,
+    });
     pipelineRealtimeService.appendLog("director sync package created");
 
     const signal = workflowControlService.getActiveSignal();
@@ -217,6 +241,7 @@ export class VideoGenerationWorkflow {
       userPrompt: JSON.stringify(
         {
           genre: state.genre,
+          userPreference: state.userPreference ?? null,
           scriptPackage: state.scriptPackage,
           breakdown: state.breakdown,
         },
@@ -227,8 +252,13 @@ export class VideoGenerationWorkflow {
       ...(signal ? { signal } : {}),
     });
 
-    const result = validateSyncedSegments(state.breakdown, response.syncedSegments);
-    this.logger.info("Synced segments created successfully", { count: result.length });
+    const result = validateSyncedSegments(
+      state.breakdown,
+      response.syncedSegments,
+    );
+    this.logger.info("Synced segments created successfully", {
+      count: result.length,
+    });
     await workflowCacheService.saveResult("videoSyncedSegments", result);
     return {
       syncedSegments: result,
@@ -243,14 +273,19 @@ export class VideoGenerationWorkflow {
       throw new Error("Script package is missing");
     }
 
-    const cameramanConfig = await this.agentConfigService.getConfig("cameraman");
+    const cameramanConfig =
+      await this.agentConfigService.getConfig("cameraman");
     if (!cameramanConfig) {
-      throw new ConflictError('Model config for role "cameraman" is not configured');
+      throw new ConflictError(
+        'Model config for role "cameraman" is not configured',
+      );
     }
 
     const videoGenConfig = await this.agentConfigService.getConfig("video-gen");
     if (!videoGenConfig) {
-      throw new ConflictError('Model config for role "video-gen" is not configured');
+      throw new ConflictError(
+        'Model config for role "video-gen" is not configured',
+      );
     }
 
     if (!state.tempDir) {
@@ -264,14 +299,24 @@ export class VideoGenerationWorkflow {
     this.logger.info("Phase 1: parallel cameraman prompt planning", {
       totalSegments: state.syncedSegments.length,
     });
-    pipelineRealtimeService.appendLog("planning all segment prompts in parallel");
+    pipelineRealtimeService.appendLog(
+      "planning all segment prompts in parallel",
+    );
 
     const segmentPlans = await Promise.all(
       state.syncedSegments.map(async (syncedSegment) => {
-        const fileNameStem = buildSegmentFileName(syncedSegment.order, syncedSegment.beat);
-        const cachedSegment = await workflowCacheService.getCachedResult<RenderedVideoSegment>(fileNameStem);
+        const fileNameStem = buildSegmentFileName(
+          syncedSegment.order,
+          syncedSegment.beat,
+        );
+        const cachedSegment =
+          await workflowCacheService.getCachedResult<RenderedVideoSegment>(
+            fileNameStem,
+          );
         if (cachedSegment) {
-          this.logger.info(`Segment ${syncedSegment.order} already cached — skipping planning`);
+          this.logger.info(
+            `Segment ${syncedSegment.order} already cached — skipping planning`,
+          );
           return { syncedSegment, fileNameStem, cachedSegment, plan: null };
         }
 
@@ -283,6 +328,7 @@ export class VideoGenerationWorkflow {
           userPrompt: JSON.stringify(
             {
               genre: state.genre,
+              userPreference: state.userPreference ?? null,
               scriptPackage: state.scriptPackage,
               breakdown: state.breakdown,
               currentSegment: syncedSegment,
@@ -294,9 +340,17 @@ export class VideoGenerationWorkflow {
           ...(signal ? { signal } : {}),
         });
 
-        const validatedPlan = validateGeneratedVideoSegment(syncedSegment, segmentPlan);
+        const validatedPlan = validateGeneratedVideoSegment(
+          syncedSegment,
+          segmentPlan,
+        );
         this.logger.info(`Segment ${syncedSegment.order} prompt planned`);
-        return { syncedSegment, fileNameStem, cachedSegment: null, plan: validatedPlan };
+        return {
+          syncedSegment,
+          fileNameStem,
+          cachedSegment: null,
+          plan: validatedPlan,
+        };
       }),
     );
 
@@ -309,10 +363,17 @@ export class VideoGenerationWorkflow {
 
     const segments: RenderedVideoSegment[] = [];
 
-    for (const { syncedSegment, fileNameStem, cachedSegment, plan } of segmentPlans) {
+    for (const {
+      syncedSegment,
+      fileNameStem,
+      cachedSegment,
+      plan,
+    } of segmentPlans) {
       if (cachedSegment) {
         this.logger.info(`Loaded segment ${syncedSegment.order} from cache`);
-        pipelineRealtimeService.appendLog(`loaded segment ${syncedSegment.order} from cache`);
+        pipelineRealtimeService.appendLog(
+          `loaded segment ${syncedSegment.order} from cache`,
+        );
         segments.push(cachedSegment);
         continue;
       }
@@ -343,13 +404,22 @@ export class VideoGenerationWorkflow {
           ...(signal ? { signal } : {}),
         });
       } catch (err) {
-        const isInappropriate = err instanceof Error && err.message.toLowerCase().includes("inappropriate");
+        const isInappropriate =
+          err instanceof Error &&
+          err.message.toLowerCase().includes("inappropriate");
         if (!isInappropriate) throw err;
 
-        this.logger.warn(`Segment ${syncedSegment.order} rejected for inappropriate content, sanitizing and retrying`);
-        pipelineRealtimeService.appendLog(`segment ${syncedSegment.order}: content rejected, sanitizing prompt and retrying`);
+        this.logger.warn(
+          `Segment ${syncedSegment.order} rejected for inappropriate content, sanitizing and retrying`,
+        );
+        pipelineRealtimeService.appendLog(
+          `segment ${syncedSegment.order}: content rejected, sanitizing prompt and retrying`,
+        );
 
-        const sanitizedPrompt = this.sanitizeVideoPrompt(validatedSegmentPlan.videoPrompt, syncedSegment.order);
+        const sanitizedPrompt = this.sanitizeVideoPrompt(
+          validatedSegmentPlan.videoPrompt,
+          syncedSegment.order,
+        );
         pipelineRealtimeService.appendLog(
           `segment ${syncedSegment.order} sanitized model prompt (exact):\n${sanitizedPrompt}`,
         );
@@ -366,19 +436,22 @@ export class VideoGenerationWorkflow {
 
       const finalSegment = { ...validatedSegmentPlan, ...artifact };
       await workflowCacheService.saveResult(fileNameStem, finalSegment);
-      this.logger.info(`Segment ${validatedSegmentPlan.order} rendered successfully`);
-      pipelineRealtimeService.appendLog(`segment ${validatedSegmentPlan.order} rendered`);
+      this.logger.info(
+        `Segment ${validatedSegmentPlan.order} rendered successfully`,
+      );
+      pipelineRealtimeService.appendLog(
+        `segment ${validatedSegmentPlan.order} rendered`,
+      );
       segments.push(finalSegment);
     }
 
     return { segments };
   }
 
-  private sanitizeVideoPrompt(
-    rawPrompt: string,
-    segmentOrder: number,
-  ): string {
-    this.logger.info(`Sanitizing video prompt for segment ${segmentOrder} (word replacement)`);
+  private sanitizeVideoPrompt(rawPrompt: string, segmentOrder: number): string {
+    this.logger.info(
+      `Sanitizing video prompt for segment ${segmentOrder} (word replacement)`,
+    );
     const sanitized = applyForbiddenWordReplacements(rawPrompt);
     this.logger.info(`Segment ${segmentOrder} prompt sanitized successfully`);
     return sanitized;
@@ -392,7 +465,9 @@ export class VideoGenerationWorkflow {
       throw new Error("Temporary output directory is missing");
     }
 
-    this.logger.info("Stitching video segments", { segmentCount: state.segments.length });
+    this.logger.info("Stitching video segments", {
+      segmentCount: state.segments.length,
+    });
     pipelineRealtimeService.appendLog("stitching final video");
     const signal = workflowControlService.getActiveSignal();
     const stitchedVideoPath = await this.ffmpegVideoStitchService.stitchVideos({
@@ -417,7 +492,10 @@ export class VideoGenerationWorkflow {
     return {
       result: {
         totalDurationSec: roundDuration(
-          state.segments.reduce((total, segment) => total + segment.durationSec, 0),
+          state.segments.reduce(
+            (total, segment) => total + segment.durationSec,
+            0,
+          ),
         ),
         tempDir: state.tempDir,
         stitchedVideoPath: state.stitchedVideoPath,
@@ -428,7 +506,10 @@ export class VideoGenerationWorkflow {
 }
 
 function resolveSegmentPlanningRole(cameramanConfig: AgentConfigInput): string {
-  if (isVideoOnlyModel(cameramanConfig) || isVideoOnlyEndpoint(cameramanConfig.apiUrl)) {
+  if (
+    isVideoOnlyModel(cameramanConfig) ||
+    isVideoOnlyEndpoint(cameramanConfig.apiUrl)
+  ) {
     return "director";
   }
 
@@ -453,7 +534,9 @@ function validateSyncedSegments(
   syncedSegments: SyncedSegment[],
 ): SyncedSegment[] {
   if (syncedSegments.length !== breakdown.length) {
-    throw new Error("Synced segment count must exactly match the director breakdown");
+    throw new Error(
+      "Synced segment count must exactly match the director breakdown",
+    );
   }
 
   return breakdown.map((segment, index) => {
@@ -463,15 +546,24 @@ function validateSyncedSegments(
     }
 
     if (syncedSegment.order !== segment.order) {
-      throw new Error("Synced segment order must exactly match the director breakdown");
+      throw new Error(
+        "Synced segment order must exactly match the director breakdown",
+      );
     }
 
-    if (roundDuration(syncedSegment.durationSec) !== roundDuration(segment.durationSec)) {
-      throw new Error("Synced segment duration must exactly match the director breakdown");
+    if (
+      roundDuration(syncedSegment.durationSec) !==
+      roundDuration(segment.durationSec)
+    ) {
+      throw new Error(
+        "Synced segment duration must exactly match the director breakdown",
+      );
     }
 
     if (syncedSegment.beat.trim() !== segment.beat.trim()) {
-      throw new Error("Synced segment beat must exactly match the director breakdown");
+      throw new Error(
+        "Synced segment beat must exactly match the director breakdown",
+      );
     }
 
     return {
@@ -486,11 +578,15 @@ function validateGeneratedVideoSegment(
   segment: GeneratedVideoSegment,
 ): GeneratedVideoSegment {
   if (segment.order !== syncedSegment.order) {
-    throw new Error("Generated video segment order must exactly match the synced segment package");
+    throw new Error(
+      "Generated video segment order must exactly match the synced segment package",
+    );
   }
 
   if (segment.beat.trim() !== syncedSegment.beat.trim()) {
-    throw new Error("Generated video segment beat must exactly match the synced segment package");
+    throw new Error(
+      "Generated video segment beat must exactly match the synced segment package",
+    );
   }
 
   // Always use the authoritative duration from the synced package — do not trust the LLM's value.

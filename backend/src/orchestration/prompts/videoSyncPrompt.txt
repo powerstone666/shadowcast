@@ -59,11 +59,29 @@ Characters should actively talk to each other with clear spoken dialogue whereve
 Keep dialogue as the main focus of segment narration, with lip-sync friendly line continuity.
 **MUSIC DIRECTION**: Describe visuals that match "fast-paced, energetic background score" - scenes should feel urgent and engaging.
 
-**LANGUAGE PRESERVATION:**
-- Detect the language of the story in scriptPackage — it will be either Hindi (Devanagari script: हिंदी) or English.
-- ALL narration fields you produce MUST be in the EXACT SAME LANGUAGE as the story in scriptPackage.
-- If the story is in Hindi, narration must be in Hindi. If the story is in English, narration must be in English.
-- Do NOT translate, paraphrase across languages, or mix languages. Copy quoted dialogue lines verbatim preserving their language.
+**LANGUAGE — Read userPreference first and apply absolutely.**
+
+Step 1: Determine the audio language from userPreference.
+- If userPreference contains "audio language: hindi" → Hindi (Devanagari script: हिंदी) is the audio language for ALL narration fields.
+- If userPreference contains "audio language: english" → English is the audio language for ALL narration fields.
+- If no userPreference is provided, look at the language of the story text in scriptPackage and match that language exactly.
+
+Step 2: Copy narration verbatim — do NOT translate or rephrase.
+- The story in scriptPackage is already written in the correct language by the script writer. Copy narration lines from the breakdown exactly as written.
+- Preserve every quoted dialogue line verbatim without any change to wording or language.
+
+**CONTENT ORIGIN ≠ AUDIO LANGUAGE — This rule is absolute and overrides any inference:**
+- A story ABOUT Wukong, Journey to the West, or any Chinese mythology does NOT mean narration should be in Chinese. The narration language is determined ONLY by userPreference.
+- A story ABOUT Norse mythology told to a Hindi audience must be narrated in Hindi — not Old Norse, not Swedish, not any Scandinavian language.
+- A story ABOUT Japanese horror told to an English audience must be narrated in English — not Japanese, not any East Asian language.
+- A story ABOUT Indian mythology told to an English audience must be narrated in English — not Sanskrit, not Hindi, not any regional Indian language.
+- The cultural origin of the story's subject, the characters' names, the source country of the mythology, or the setting of the story — NONE of these determine the audio language. Only userPreference does.
+
+NEVER:
+- Mix languages across narration fields (e.g. English narration with Chinese character lines).
+- Add Chinese, Japanese, Arabic, Korean, or any other non-specified language text into narration fields simply because the story's cultural content originates from those regions.
+- Translate narration into a different language from what userPreference specifies.
+- Introduce any language that was not present in the original scriptPackage story text.
 
 **VISUAL PACING GUIDELINES:**
 - For rapid dialogue: quick cuts between characters, close-ups on expressions

@@ -1,7 +1,7 @@
 import { Annotation, END, START, StateGraph } from "@langchain/langgraph";
 import { z } from "zod";
 
-import { ConflictError } from "../errors.js";
+import { ConflictError, isWorkflowTerminatedError } from "../errors.js";
 import { loadPrompt } from "../prompts/loadPrompt.js";
 import { getNativeSearchExtraBody } from "../runtime/nativeSearchSupport.js";
 import { AgentRuntime } from "../runtime/AgentRuntime.js";
@@ -46,11 +46,23 @@ const genreSelectionResponseSchema = z.object({
   reason: z.string().trim().min(1),
 });
 
-const genreCandidatePrompt = loadPrompt("genreCandidatePrompt.txt", import.meta.url);
-const genreNativeSearchPrompt = loadPrompt("genreNativeSearchPrompt.txt", import.meta.url);
-const genreSearchQueryPrompt = loadPrompt("genreSearchQueryPrompt.txt", import.meta.url);
+const genreCandidatePrompt = loadPrompt(
+  "genreCandidatePrompt.txt",
+  import.meta.url,
+);
+const genreNativeSearchPrompt = loadPrompt(
+  "genreNativeSearchPrompt.txt",
+  import.meta.url,
+);
+const genreSearchQueryPrompt = loadPrompt(
+  "genreSearchQueryPrompt.txt",
+  import.meta.url,
+);
 
-const genreSelectionPrompt = loadPrompt("genreSelectionPrompt.txt", import.meta.url);
+const genreSelectionPrompt = loadPrompt(
+  "genreSelectionPrompt.txt",
+  import.meta.url,
+);
 
 function buildTemporalContext(): {
   currentDate: string;
@@ -115,7 +127,9 @@ const GenreSelectionState = Annotation.Root({
     reducer: (_, right) => right,
     default: () => [],
   }),
-  selection: Annotation<z.infer<typeof genreSelectionResponseSchema> | undefined>({
+  selection: Annotation<
+    z.infer<typeof genreSelectionResponseSchema> | undefined
+  >({
     reducer: (_, right) => right,
     default: () => undefined,
   }),
@@ -141,7 +155,10 @@ export class GenreSelectionWorkflow {
   }
 
   async run(input: WorkflowInput): Promise<GenreSelectionResult> {
-    const cachedResult = await workflowCacheService.getCachedResult<GenreSelectionResult>("genreSelection");
+    const cachedResult =
+      await workflowCacheService.getCachedResult<GenreSelectionResult>(
+        "genreSelection",
+      );
     if (cachedResult) {
       pipelineRealtimeService.appendLog("loaded genre selection from cache");
       return cachedResult;
@@ -163,10 +180,18 @@ export class GenreSelectionWorkflow {
     return new StateGraph(GenreSelectionState)
       .addNode("loadContext", async () => this.loadContext())
       .addNode("shortlistGenres", async (state) => this.shortlistGenres(state))
-      .addNode("generateSearchQueries", async (state) => this.generateSearchQueries(state))
-      .addNode("tryTavilySelection", async (state) => this.tryTavilySelection(state))
-      .addNode("tryNativeSelection", async (state) => this.tryNativeSelection(state))
-      .addNode("tryHtmlScrapeSelection", async (state) => this.tryHtmlScrapeSelection(state))
+      .addNode("generateSearchQueries", async (state) =>
+        this.generateSearchQueries(state),
+      )
+      .addNode("tryTavilySelection", async (state) =>
+        this.tryTavilySelection(state),
+      )
+      .addNode("tryNativeSelection", async (state) =>
+        this.tryNativeSelection(state),
+      )
+      .addNode("tryHtmlScrapeSelection", async (state) =>
+        this.tryHtmlScrapeSelection(state),
+      )
       .addNode("formatResult", async (state) => this.formatResult(state))
       .addEdge(START, "loadContext")
       .addEdge("loadContext", "shortlistGenres")
@@ -188,7 +213,8 @@ export class GenreSelectionWorkflow {
       throw new ConflictError("No genres are configured");
     }
 
-    const recentContent = await this.contentMemoryService.getRecentContent(RECENT_HISTORY_DAYS);
+    const recentContent =
+      await this.contentMemoryService.getRecentContent(RECENT_HISTORY_DAYS);
 
     return {
       selectedGenres,
@@ -205,16 +231,22 @@ export class GenreSelectionWorkflow {
 
     this.logger.info("Attempting Tavily search selection", {
       candidateCount: state.candidateGenres.length,
-      queries: state.searchQueries.map(q => q.query),
+      queries: state.searchQueries.map((q) => q.query),
     });
     pipelineRealtimeService.appendLog("attempting Tavily search selection");
     const searchUpdates = await this.searchGenres(state, "tavily");
-    if (!searchUpdates.searchBundles || searchUpdates.searchBundles.length === 0) {
+    if (
+      !searchUpdates.searchBundles ||
+      searchUpdates.searchBundles.length === 0
+    ) {
       this.logger.warn("Tavily search produced no bundles");
       return {};
     }
 
-    const selectionUpdate = await this.selectGenre({ ...state, ...searchUpdates });
+    const selectionUpdate = await this.selectGenre({
+      ...state,
+      ...searchUpdates,
+    });
     if (selectionUpdate.selection) {
       this.logger.info("Tavily selection successful", {
         genre: selectionUpdate.selection.selectedGenre,
@@ -225,7 +257,9 @@ export class GenreSelectionWorkflow {
         searchBundles: searchUpdates.searchBundles,
       };
     }
-    this.logger.info("Tavily search completed but no genre was selected from it");
+    this.logger.info(
+      "Tavily search completed but no genre was selected from it",
+    );
     return searchUpdates;
   }
 
@@ -265,18 +299,19 @@ export class GenreSelectionWorkflow {
         ...(signal ? { signal } : {}),
       });
 
-      if (!state.selectedGenres.includes(selection.selectedGenre)) {
-        throw new Error(`Selected genre "${selection.selectedGenre}" is not configured`);
-      }
-
       this.logger.info("Native selection successful", {
         genre: selection.selectedGenre,
         topic: selection.topic,
       });
       return { selection };
     } catch (error) {
-      this.logger.error("Native selection failed", { error: toErrorMessage(error) });
-      pipelineRealtimeService.appendLog(`native selection failed: ${error instanceof Error ? error.message : "unknown error"}`);
+      if (isWorkflowTerminatedError(error)) throw error;
+      this.logger.error("Native selection failed", {
+        error: toErrorMessage(error),
+      });
+      pipelineRealtimeService.appendLog(
+        `native selection failed: ${error instanceof Error ? error.message : "unknown error"}`,
+      );
       return {};
     }
   }
@@ -288,16 +323,24 @@ export class GenreSelectionWorkflow {
     if (state.selection) return {};
 
     this.logger.info("Attempting HTML scrape search selection", {
-      queries: state.searchQueries.map(q => q.query),
+      queries: state.searchQueries.map((q) => q.query),
     });
-    pipelineRealtimeService.appendLog("attempting HTML scrape search selection");
+    pipelineRealtimeService.appendLog(
+      "attempting HTML scrape search selection",
+    );
     const searchUpdates = await this.searchGenres(state, "scrape");
-    if (!searchUpdates.searchBundles || searchUpdates.searchBundles.length === 0) {
+    if (
+      !searchUpdates.searchBundles ||
+      searchUpdates.searchBundles.length === 0
+    ) {
       this.logger.warn("HTML scrape produced no bundles");
       return {};
     }
 
-    const selectionUpdate = await this.selectGenre({ ...state, ...searchUpdates });
+    const selectionUpdate = await this.selectGenre({
+      ...state,
+      ...searchUpdates,
+    });
     if (selectionUpdate.selection) {
       this.logger.info("HTML scrape selection successful", {
         genre: selectionUpdate.selection.selectedGenre,
@@ -308,7 +351,9 @@ export class GenreSelectionWorkflow {
         searchBundles: searchUpdates.searchBundles,
       };
     }
-    this.logger.info("HTML scrape search completed but no genre was selected from it");
+    this.logger.info(
+      "HTML scrape search completed but no genre was selected from it",
+    );
     return searchUpdates;
   }
 
@@ -316,7 +361,6 @@ export class GenreSelectionWorkflow {
     state: GenreSelectionStateType,
   ): Promise<Partial<GenreSelectionStateType>> {
     workflowControlService.ensureNotTerminated();
-
 
     const signal = workflowControlService.getActiveSignal();
     const temporalContext = buildTemporalContext();
@@ -339,7 +383,10 @@ export class GenreSelectionWorkflow {
     });
 
     return {
-      candidateGenres: mapCandidateGenres(state.selectedGenres, modelResult.candidateGenres),
+      candidateGenres: mapCandidateGenres(
+        state.selectedGenres,
+        modelResult.candidateGenres,
+      ),
     };
   }
 
@@ -347,7 +394,6 @@ export class GenreSelectionWorkflow {
     state: GenreSelectionStateType,
   ): Promise<Partial<GenreSelectionStateType>> {
     workflowControlService.ensureNotTerminated();
-
 
     const signal = workflowControlService.getActiveSignal();
     const temporalContext = buildTemporalContext();
@@ -388,28 +434,31 @@ export class GenreSelectionWorkflow {
 
     // Get unique queries (all will be the same comprehensive query)
     const uniqueQueries = Array.from(
-      new Set(state.searchQueries.map((sq) => sq.query))
+      new Set(state.searchQueries.map((sq) => sq.query)),
     );
-    
+
     // Prepare queries for batch search (deduplicated)
     const queries = uniqueQueries.map((query) => ({ query, mode }));
-    
+
     // Use batch search for efficiency - will make only 1 API call due to caching
     const batchResults = await this.searchService.batchSearch(queries, 2); // concurrency limit of 2
-    
-    const searchBundles: SearchBundle[] = state.searchQueries.map((searchQuery) => {
-      const results = batchResults.get(searchQuery.query) || [];
-      return {
-        genre: searchQuery.genre,
-        query: searchQuery.query,
-        results,
-      };
-    });
 
-    const searchResultsCount = uniqueQueries.length > 0 
-      ? (batchResults.get(uniqueQueries[0]!) || []).length 
-      : 0;
-    
+    const searchBundles: SearchBundle[] = state.searchQueries.map(
+      (searchQuery) => {
+        const results = batchResults.get(searchQuery.query) || [];
+        return {
+          genre: searchQuery.genre,
+          query: searchQuery.query,
+          results,
+        };
+      },
+    );
+
+    const searchResultsCount =
+      uniqueQueries.length > 0
+        ? (batchResults.get(uniqueQueries[0]!) || []).length
+        : 0;
+
     this.logger.info("Search completed", {
       uniqueQueries: uniqueQueries.length,
       totalGenres: state.searchQueries.length,
@@ -450,10 +499,6 @@ export class GenreSelectionWorkflow {
       ...(signal ? { signal } : {}),
     });
 
-    if (!state.selectedGenres.includes(selection.selectedGenre)) {
-      throw new Error(`Selected genre "${selection.selectedGenre}" is not configured`);
-    }
-
     return {
       selection,
     };
@@ -482,35 +527,26 @@ export class GenreSelectionWorkflow {
 }
 
 function normalizeSelectedGenres(genres: string[]): string[] {
-  return Array.from(new Set(genres.map((genre) => genre.trim()).filter(Boolean)));
+  return Array.from(
+    new Set(genres.map((genre) => genre.trim()).filter(Boolean)),
+  );
 }
 
-function mapCandidateGenres(selectedGenres: string[], candidateGenres: string[]): string[] {
+function mapCandidateGenres(
+  _selectedGenres: string[],
+  candidateGenres: string[],
+): string[] {
+  // Accept any genre the AI suggests — configured genres are passed to the AI
+  // as preferences/hints via the prompt, not enforced as a hard allowlist here.
   const normalizedCandidates = Array.from(
     new Set(candidateGenres.map((genre) => genre.trim()).filter(Boolean)),
   );
-  
-  // Create a mapping of lowercase genre names to their original case
-  const selectedGenreMap = new Map<string, string>();
-  selectedGenres.forEach(genre => {
-    selectedGenreMap.set(genre.toLowerCase(), genre);
-  });
-  
-  // Try exact match first
-  let validCandidates = normalizedCandidates.filter((genre) => selectedGenres.includes(genre));
-  
-  // If no exact matches, try case-insensitive match
-  if (validCandidates.length === 0) {
-    validCandidates = normalizedCandidates.filter((genre) => 
-      selectedGenreMap.has(genre.toLowerCase())
-    ).map(genre => selectedGenreMap.get(genre.toLowerCase())!);
+
+  if (normalizedCandidates.length === 0) {
+    throw new Error("Genre shortlist produced no candidates");
   }
 
-  if (validCandidates.length === 0) {
-    throw new Error(`Genre shortlist did not contain any configured genres. Configured: ${selectedGenres.join(", ")}, Candidates: ${normalizedCandidates.join(", ")}`);
-  }
-
-  return validCandidates.slice(0, 3);
+  return normalizedCandidates.slice(0, 3);
 }
 
 function toErrorMessage(error: unknown): string {

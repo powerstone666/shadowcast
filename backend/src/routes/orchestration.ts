@@ -1,7 +1,10 @@
 import { Router } from "express";
 import { z } from "zod";
 
-import { isConflictError, isWorkflowTerminatedError } from "../orchestration/errors.js";
+import {
+  isConflictError,
+  isWorkflowTerminatedError,
+} from "../orchestration/errors.js";
 import { pipelineRealtimeService } from "../services/pipelineRealtimeService.js";
 import { workflowCacheService } from "../services/workflowCacheService.js";
 import { workflowControlService } from "../services/workflowControlService.js";
@@ -63,7 +66,10 @@ orchestrationRouter.post("/run-workflow", async (req, res) => {
     }
 
     runContext = workflowControlService.startRun();
-    pipelineRealtimeService.beginStage("genre_selection", "genre selection started");
+    pipelineRealtimeService.beginStage(
+      "genre_selection",
+      "genre selection started",
+    );
     const genreSelectionResult = await genreSelectionWorkflow.run({
       userPreference: parsedRequest.data.userPreference,
     });
@@ -87,7 +93,10 @@ orchestrationRouter.post("/run-workflow", async (req, res) => {
       `genre selected: ${genreSelectionResult.selectedGenre.toLowerCase()}`,
     );
 
-    pipelineRealtimeService.beginStage("script_generation", "script generation started");
+    pipelineRealtimeService.beginStage(
+      "script_generation",
+      "script generation started",
+    );
     const scriptGenerationResult = await scriptGenerationWorkflow.run({
       genre: genreSelectionResult.selectedGenre,
       topic: genreSelectionResult.topic,
@@ -95,16 +104,24 @@ orchestrationRouter.post("/run-workflow", async (req, res) => {
       userPreference: parsedRequest.data.userPreference,
     });
     workflowControlService.ensureNotTerminated();
-    pipelineRealtimeService.appendLog(`topic chosen: ${scriptGenerationResult.topic.toLowerCase()}`);
+    pipelineRealtimeService.appendLog(
+      `topic chosen: ${scriptGenerationResult.topic.toLowerCase()}`,
+    );
     pipelineRealtimeService.appendLog(
       `script title: ${summarizeText(scriptGenerationResult.title, 140)}`,
     );
     pipelineRealtimeService.appendLog(
       `script summary: ${summarizeText(scriptGenerationResult.summary, 180)}`,
     );
-    pipelineRealtimeService.completeStage("script_generation", "script generated");
+    pipelineRealtimeService.completeStage(
+      "script_generation",
+      "script generated",
+    );
 
-    pipelineRealtimeService.beginStage("council_review", "council review started");
+    pipelineRealtimeService.beginStage(
+      "council_review",
+      "council review started",
+    );
     const councilReviewResult = await councilReviewWorkflow.run({
       genre: genreSelectionResult.selectedGenre,
       ...scriptGenerationResult,
@@ -118,10 +135,15 @@ orchestrationRouter.post("/run-workflow", async (req, res) => {
       `council score: ${councilReviewResult.averageScore}`,
     );
     if (councilReviewResult.revised) {
-      pipelineRealtimeService.appendLog("script revised after council feedback");
+      pipelineRealtimeService.appendLog(
+        "script revised after council feedback",
+      );
     }
 
-    pipelineRealtimeService.beginStage("director_plan", "director plan started");
+    pipelineRealtimeService.beginStage(
+      "director_plan",
+      "director plan started",
+    );
     const directorPlanResult = await directorPlanWorkflow.run({
       genre: genreSelectionResult.selectedGenre,
       ...councilReviewResult.scriptPackage,
@@ -135,11 +157,15 @@ orchestrationRouter.post("/run-workflow", async (req, res) => {
       `segment planning done: ${directorPlanResult.breakdown.length} segments`,
     );
 
-    pipelineRealtimeService.beginStage("video_generation", "video generation started");
+    pipelineRealtimeService.beginStage(
+      "video_generation",
+      "video generation started",
+    );
     const videoGenerationResult = await videoGenerationWorkflow.run({
       genre: genreSelectionResult.selectedGenre,
       ...councilReviewResult.scriptPackage,
       breakdown: directorPlanResult.breakdown,
+      userPreference: parsedRequest.data.userPreference,
     });
     workflowControlService.ensureNotTerminated();
     pipelineRealtimeService.appendLog(
@@ -150,7 +176,10 @@ orchestrationRouter.post("/run-workflow", async (req, res) => {
       `video generation completed: ${videoGenerationResult.segments.length} segments`,
     );
 
-    pipelineRealtimeService.beginStage("youtube_publish", "youtube publish started");
+    pipelineRealtimeService.beginStage(
+      "youtube_publish",
+      "youtube publish started",
+    );
     const youtubePublishResult = await youtubePublishWorkflow.run({
       genre: genreSelectionResult.selectedGenre,
       title: councilReviewResult.scriptPackage.title,
@@ -164,7 +193,9 @@ orchestrationRouter.post("/run-workflow", async (req, res) => {
       "youtube_publish",
       `upload completed: ${youtubePublishResult.videoId}`,
     );
-    pipelineRealtimeService.appendLog(`youtube url: ${youtubePublishResult.videoUrl}`);
+    pipelineRealtimeService.appendLog(
+      `youtube url: ${youtubePublishResult.videoUrl}`,
+    );
     await workflowCacheService.cleanCache();
     pipelineRealtimeService.appendLog("temporary artifacts cleaned up");
 
@@ -227,7 +258,9 @@ function formatGenreHighlights(
   return highlights
     .slice(0, 3)
     .map((item) => {
-      const topHeadlines = item.headlines.slice(0, 2).map((headline) => summarizeText(headline, 60));
+      const topHeadlines = item.headlines
+        .slice(0, 2)
+        .map((headline) => summarizeText(headline, 60));
       return `${item.genre}: ${topHeadlines.join(" | ")}`;
     })
     .join(" || ");
@@ -256,7 +289,10 @@ function formatDirectorBreakdown(
   }>,
 ): string {
   return breakdown
-    .map((segment) => `#${segment.order} ${segment.beat} (${segment.durationSec}s)`)
+    .map(
+      (segment) =>
+        `#${segment.order} ${segment.beat} (${segment.durationSec}s)`,
+    )
     .join(" | ");
 }
 
@@ -292,7 +328,10 @@ orchestrationRouter.post("/genre-selection", async (req, res) => {
       return;
     }
 
-    pipelineRealtimeService.beginStage("genre_selection", "genre selection started");
+    pipelineRealtimeService.beginStage(
+      "genre_selection",
+      "genre selection started",
+    );
     const result = await genreSelectionWorkflow.run({
       userPreference: parsedRequest.data.userPreference,
     });
@@ -315,14 +354,19 @@ orchestrationRouter.post("/genre-selection", async (req, res) => {
     }
 
     res.status(500).json({
-      error: error instanceof Error ? error.message : "Failed to run genre selection",
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to run genre selection",
     });
   }
 });
 
 orchestrationRouter.post("/script-generation", async (req, res) => {
   try {
-    const parsedRequest = scriptGenerationRequestSchema.safeParse(req.body ?? {});
+    const parsedRequest = scriptGenerationRequestSchema.safeParse(
+      req.body ?? {},
+    );
     if (!parsedRequest.success) {
       res.status(400).json({
         error: "Invalid script-generation payload",
@@ -331,15 +375,23 @@ orchestrationRouter.post("/script-generation", async (req, res) => {
       return;
     }
 
-    pipelineRealtimeService.beginStage("script_generation", "script generation started");
+    pipelineRealtimeService.beginStage(
+      "script_generation",
+      "script generation started",
+    );
     const result = await scriptGenerationWorkflow.run({
       genre: parsedRequest.data.genre,
       topic: parsedRequest.data.topic,
       title: parsedRequest.data.title,
       userPreference: parsedRequest.data.userPreference,
     });
-    pipelineRealtimeService.appendLog(`topic chosen: ${result.topic.toLowerCase()}`);
-    pipelineRealtimeService.completeStage("script_generation", "script generated");
+    pipelineRealtimeService.appendLog(
+      `topic chosen: ${result.topic.toLowerCase()}`,
+    );
+    pipelineRealtimeService.completeStage(
+      "script_generation",
+      "script generated",
+    );
 
     res.status(200).json(result);
   } catch (error) {
@@ -355,7 +407,10 @@ orchestrationRouter.post("/script-generation", async (req, res) => {
     }
 
     res.status(500).json({
-      error: error instanceof Error ? error.message : "Failed to run script generation",
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to run script generation",
     });
   }
 });
@@ -371,14 +426,19 @@ orchestrationRouter.post("/council-review", async (req, res) => {
       return;
     }
 
-    pipelineRealtimeService.beginStage("council_review", "council review started");
+    pipelineRealtimeService.beginStage(
+      "council_review",
+      "council review started",
+    );
     const result = await councilReviewWorkflow.run(parsedRequest.data);
     pipelineRealtimeService.completeStage(
       "council_review",
       `council score: ${result.averageScore}`,
     );
     if (result.revised) {
-      pipelineRealtimeService.appendLog("script revised after council feedback");
+      pipelineRealtimeService.appendLog(
+        "script revised after council feedback",
+      );
     }
 
     res.status(200).json(result);
@@ -395,7 +455,8 @@ orchestrationRouter.post("/council-review", async (req, res) => {
     }
 
     res.status(500).json({
-      error: error instanceof Error ? error.message : "Failed to run council review",
+      error:
+        error instanceof Error ? error.message : "Failed to run council review",
     });
   }
 });
@@ -411,7 +472,10 @@ orchestrationRouter.post("/director-plan", async (req, res) => {
       return;
     }
 
-    pipelineRealtimeService.beginStage("director_plan", "director plan started");
+    pipelineRealtimeService.beginStage(
+      "director_plan",
+      "director plan started",
+    );
     const result = await directorPlanWorkflow.run(parsedRequest.data);
     pipelineRealtimeService.completeStage(
       "director_plan",
@@ -432,7 +496,8 @@ orchestrationRouter.post("/director-plan", async (req, res) => {
     }
 
     res.status(500).json({
-      error: error instanceof Error ? error.message : "Failed to run director plan",
+      error:
+        error instanceof Error ? error.message : "Failed to run director plan",
     });
   }
 });
@@ -448,7 +513,10 @@ orchestrationRouter.post("/video-generation", async (req, res) => {
       return;
     }
 
-    pipelineRealtimeService.beginStage("video_generation", "video generation started");
+    pipelineRealtimeService.beginStage(
+      "video_generation",
+      "video generation started",
+    );
     const result = await videoGenerationWorkflow.run(parsedRequest.data);
     pipelineRealtimeService.completeStage(
       "video_generation",
@@ -469,11 +537,13 @@ orchestrationRouter.post("/video-generation", async (req, res) => {
     }
 
     res.status(500).json({
-      error: error instanceof Error ? error.message : "Failed to run video generation",
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to run video generation",
     });
   }
 });
-
 
 orchestrationRouter.post("/youtube-publish", async (req, res) => {
   try {
@@ -486,9 +556,15 @@ orchestrationRouter.post("/youtube-publish", async (req, res) => {
       return;
     }
 
-    pipelineRealtimeService.beginStage("youtube_publish", "youtube publish started");
+    pipelineRealtimeService.beginStage(
+      "youtube_publish",
+      "youtube publish started",
+    );
     const result = await youtubePublishWorkflow.run(parsedRequest.data);
-    pipelineRealtimeService.completeStage("youtube_publish", `upload completed: ${result.videoId}`);
+    pipelineRealtimeService.completeStage(
+      "youtube_publish",
+      `upload completed: ${result.videoId}`,
+    );
     pipelineRealtimeService.appendLog("temporary artifacts cleaned up");
 
     res.status(200).json(result);
@@ -505,7 +581,10 @@ orchestrationRouter.post("/youtube-publish", async (req, res) => {
     }
 
     res.status(500).json({
-      error: error instanceof Error ? error.message : "Failed to publish YouTube Short",
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to publish YouTube Short",
     });
   }
 });

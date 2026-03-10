@@ -1,7 +1,10 @@
 import { randomUUID } from "node:crypto";
 import { rm } from "node:fs/promises";
 
-import { ConflictError, WorkflowTerminatedError } from "../orchestration/errors.js";
+import {
+  ConflictError,
+  WorkflowTerminatedError,
+} from "../orchestration/errors.js";
 import { workflowCacheService } from "./workflowCacheService.js";
 
 type ActiveWorkflowRun = {
@@ -69,9 +72,15 @@ export class WorkflowControlService {
       };
     }
 
-    this.activeRun.controller.abort();
-    const cleanedTempDirs = await this.cleanupTempDirs(this.activeRun.tempDirs);
-    
+    // Grab the run reference and null activeRun immediately so that:
+    // 1. startRun() is unblocked right away (no stale lock after abort)
+    // 2. finishRun() called from the in-flight request's finally block becomes a no-op
+    const run = this.activeRun;
+    this.activeRun = null;
+
+    run.controller.abort();
+    const cleanedTempDirs = await this.cleanupTempDirs(run.tempDirs);
+
     // Also clean up workflow cache files
     try {
       await workflowCacheService.cleanCache();
@@ -79,7 +88,7 @@ export class WorkflowControlService {
       // Log but don't fail termination if cache cleanup fails
       console.warn("Failed to clean workflow cache during termination:", error);
     }
-    
+
     return {
       terminated: true,
       cleanedTempDirs,
