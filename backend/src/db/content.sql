@@ -3,6 +3,9 @@ CREATE TABLE IF NOT EXISTS content (
     title TEXT NOT NULL,
     summary TEXT NOT NULL,
     genre TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    youtube_video_id VARCHAR(50),
+    view_count INTEGER DEFAULT 0,
+    published_at TIMESTAMP
 );
 

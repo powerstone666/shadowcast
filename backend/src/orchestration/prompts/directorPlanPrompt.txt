@@ -112,6 +112,9 @@ Hard constraints:
   - Remove less critical segments
   - Use shorter durations for less important beats
   - The system will REJECT any breakdown exceeding 120 seconds total
+- If the user input includes a `planningBudget`, treat `planningBudget.targetTotalDurationSec` as your operating target and `constraints.maxTotalDurationSec` as the hard cap.
+- If `planningBudget.requiresCompression` is true, you MUST condense narration, merge adjacent beats, and remove low-priority transitions. Do not try to preserve every sentence from `scriptPackage.story`.
+- If the user input includes `retryGuidance`, fix that exact overage before returning.
 - **SEGMENT COUNT GUIDANCE**:
   - For a 90-second story: ~6 segments of 15 seconds each (90 total)
   - For a 120-second story: ~8 segments of 15 seconds each (120 max) OR 10 segments of 12 seconds each

@@ -16,6 +16,7 @@ import {
   type RecentContentItem,
 } from "../../services/contentMemoryService.js";
 import { GenreConfigService } from "../../services/genreConfigService.js";
+import { ViewAnalyticsService, type TopViewedContent } from "../../services/viewAnalyticsService.js";
 import { pipelineRealtimeService } from "../../services/pipelineRealtimeService.js";
 import { workflowCacheService } from "../../services/workflowCacheService.js";
 import { workflowControlService } from "../../services/workflowControlService.js";
@@ -115,6 +116,10 @@ const GenreSelectionState = Annotation.Root({
     reducer: (_, right) => right,
     default: () => [],
   }),
+  topViewedContent: Annotation<TopViewedContent[]>({
+    reducer: (_, right) => right,
+    default: () => [],
+  }),
   candidateGenres: Annotation<string[]>({
     reducer: (_, right) => right,
     default: () => [],
@@ -150,6 +155,7 @@ export class GenreSelectionWorkflow {
     private readonly genreConfigService = new GenreConfigService(),
     private readonly contentMemoryService = new ContentMemoryService(),
     private readonly searchService = new TavilySearchService(),
+    private readonly viewAnalyticsService = new ViewAnalyticsService(),
   ) {
     this.graph = this.buildGraph();
   }
@@ -215,11 +221,14 @@ export class GenreSelectionWorkflow {
 
     const recentContent =
       await this.contentMemoryService.getRecentContent(RECENT_HISTORY_DAYS);
+    
+    const topViewedContent = await this.viewAnalyticsService.getTopViewedContent(5);
 
     return {
       selectedGenres,
       recentContent,
       recentGenres: recentContent.map((item) => item.genre),
+      topViewedContent,
     };
   }
 
@@ -374,6 +383,7 @@ export class GenreSelectionWorkflow {
           userPreference: state.userPreference ?? null,
           recentContent: state.recentContent,
           recentGenres: state.recentGenres,
+          topViewedContent: state.topViewedContent,
         },
         null,
         2,
@@ -491,6 +501,7 @@ export class GenreSelectionWorkflow {
           userPreference: state.userPreference ?? null,
           recentContent: state.recentContent,
           recentGenres: state.recentGenres,
+          topViewedContent: state.topViewedContent,
           searchBundles: state.searchBundles,
         },
         null,

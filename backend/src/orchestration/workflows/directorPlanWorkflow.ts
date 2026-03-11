@@ -16,6 +16,9 @@ import {
 
 const MAX_SEGMENT_DURATION_SEC = 15;
 const MAX_TOTAL_DURATION_SEC = 120;
+const MIN_TOTAL_DURATION_SEC = 30;
+const TARGET_AVERAGE_SEGMENT_DURATION_SEC = 12;
+const ESTIMATED_WORDS_PER_SECOND = 2;
 export const directorSegmentSchema = z.object({
   order: z.number().int().min(1),
   durationSec: z.number().int().positive().max(MAX_SEGMENT_DURATION_SEC),
@@ -45,6 +48,21 @@ export type DirectorPlanResult = {
   totalDurationSec: number;
   breakdown: DirectorSegment[];
   durationReason: string;
+};
+
+type DirectorPlanningBudget = {
+  storyWordCount: number;
+  estimatedNarrationDurationSec: number;
+  targetTotalDurationSec: number;
+  suggestedMaxSegments: number;
+  suggestedAverageSegmentDurationSec: number;
+  requiresCompression: boolean;
+};
+
+type DirectorRetryGuidance = {
+  previousTotalDurationSec: number;
+  overBySec: number;
+  requiredMaxTotalDurationSec: number;
 };
 
 const DirectorPlanState = Annotation.Root({
@@ -167,6 +185,7 @@ export class DirectorPlanWorkflow {
       topic: state.scriptPackage.topic,
     });
     const signal = workflowControlService.getActiveSignal();
+    const planningBudget = buildDirectorPlanningBudget(state.scriptPackage.story);
 
     let lastError: Error | undefined;
     const maxAttempts = 3;
@@ -177,6 +196,9 @@ export class DirectorPlanWorkflow {
 
         let response;
         try {
+          const retryGuidance = lastError
+            ? parseDirectorRetryGuidance(lastError.message)
+            : undefined;
           response = await this.agentRuntime.invokeStructuredJson({
             roleKey: "director",
             systemPrompt: directorPlanPrompt,
@@ -188,11 +210,15 @@ export class DirectorPlanWorkflow {
                   maxSegmentDurationSec: MAX_SEGMENT_DURATION_SEC,
                   maxTotalDurationSec: MAX_TOTAL_DURATION_SEC,
                 },
+                planningBudget,
+                instruction: buildDirectorInstruction(
+                  planningBudget,
+                  retryGuidance,
+                ),
                 ...(attempt > 1 && lastError
                   ? {
                       previousError: lastError.message,
-                      instruction:
-                        "Please ensure all segments have durationSec field and total duration does not exceed 120 seconds. Each segment must have order, durationSec, beat, narration, and visualDirection.",
+                      retryGuidance,
                     }
                   : {}),
               },
@@ -323,4 +349,99 @@ export function validateDirectorBreakdown(
 function roundDuration(value: number): number {
   // Return integer duration - ensure whole number for video generation API
   return Math.round(value);
+}
+
+function buildDirectorPlanningBudget(story: string): DirectorPlanningBudget {
+  const storyWordCount = countWords(story);
+  const estimatedNarrationDurationSec = Math.max(
+    MIN_TOTAL_DURATION_SEC,
+    roundDuration(storyWordCount / ESTIMATED_WORDS_PER_SECOND),
+  );
+  const targetTotalDurationSec = Math.min(
+    MAX_TOTAL_DURATION_SEC,
+    estimatedNarrationDurationSec,
+  );
+  const suggestedMaxSegments = clamp(
+    Math.ceil(targetTotalDurationSec / TARGET_AVERAGE_SEGMENT_DURATION_SEC),
+    3,
+    Math.ceil(MAX_TOTAL_DURATION_SEC / TARGET_AVERAGE_SEGMENT_DURATION_SEC),
+  );
+  const suggestedAverageSegmentDurationSec = clamp(
+    Math.floor(targetTotalDurationSec / suggestedMaxSegments),
+    6,
+    MAX_SEGMENT_DURATION_SEC,
+  );
+
+  return {
+    storyWordCount,
+    estimatedNarrationDurationSec,
+    targetTotalDurationSec,
+    suggestedMaxSegments,
+    suggestedAverageSegmentDurationSec,
+    requiresCompression: estimatedNarrationDurationSec > MAX_TOTAL_DURATION_SEC,
+  };
+}
+
+function buildDirectorInstruction(
+  planningBudget: DirectorPlanningBudget,
+  retryGuidance?: DirectorRetryGuidance,
+): string {
+  const baseInstruction = [
+    `Plan for about ${planningBudget.targetTotalDurationSec} seconds total and never exceed ${MAX_TOTAL_DURATION_SEC} seconds.`,
+    `Keep the breakdown at or below ${planningBudget.suggestedMaxSegments} segments with roughly ${planningBudget.suggestedAverageSegmentDurationSec}-${MAX_SEGMENT_DURATION_SEC} seconds per segment unless the story clearly needs fewer.`,
+  ];
+
+  if (planningBudget.requiresCompression) {
+    baseInstruction.push(
+      `The current script is estimated at ${planningBudget.estimatedNarrationDurationSec} seconds, so you must compress narration, merge adjacent beats, and drop lower-value transitions instead of preserving every sentence.`,
+    );
+  }
+
+  if (retryGuidance) {
+    baseInstruction.push(
+      `Your previous plan totaled ${retryGuidance.previousTotalDurationSec} seconds, so reduce at least ${retryGuidance.overBySec} seconds before returning.`,
+    );
+  }
+
+  baseInstruction.push(
+    "Every segment must include order, durationSec, beat, narration, and visualDirection.",
+  );
+
+  return baseInstruction.join(" ");
+}
+
+function parseDirectorRetryGuidance(
+  errorMessage: string,
+): DirectorRetryGuidance | undefined {
+  const durationOverflowMatch = errorMessage.match(
+    /exceeds (\d+) seconds \(was (\d+)s\)/i,
+  );
+  if (!durationOverflowMatch) {
+    return undefined;
+  }
+
+  const requiredMaxTotalDurationSec = Number(durationOverflowMatch[1]);
+  const previousTotalDurationSec = Number(durationOverflowMatch[2]);
+  if (
+    !Number.isFinite(requiredMaxTotalDurationSec) ||
+    !Number.isFinite(previousTotalDurationSec) ||
+    previousTotalDurationSec <= requiredMaxTotalDurationSec
+  ) {
+    return undefined;
+  }
+
+  return {
+    previousTotalDurationSec,
+    overBySec: previousTotalDurationSec - requiredMaxTotalDurationSec,
+    requiredMaxTotalDurationSec,
+  };
+}
+
+function countWords(value: string): number {
+  const tokens = value.trim().match(/\S+/g);
+  return tokens ? tokens.length : 0;
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max);
 }

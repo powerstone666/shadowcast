@@ -164,10 +164,17 @@ export class YoutubePublishWorkflow {
   private async saveContent(
     state: YoutubePublishStateType,
   ): Promise<Partial<YoutubePublishStateType>> {
+    if (!state.publishResult) {
+      throw new Error("Cannot save content without publish result");
+    }
+
     await this.contentMetadataService.savePublishedContent({
       title: state.title,
       summary: state.summary,
       genre: state.genre,
+      youtubeVideoId: state.publishResult.videoId,
+      viewCount: 0, // Initial view count, will be updated later
+      publishedAt: state.publishResult.publishedAt,
     });
 
     return {};

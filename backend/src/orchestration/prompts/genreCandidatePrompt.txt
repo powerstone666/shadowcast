@@ -40,8 +40,15 @@ You receive:
 - the user's optional preference
 - the content published in the last 14 days
 - recent genre usage derived from that content
+- top 5 most viewed content from the channel (including genre, title, and view count)
 
 Choose the top 3 candidate genres most worth researching further.
+
+PERFORMANCE INSIGHTS:
+- Analyze the top viewed content to identify which genres historically perform best
+- Consider audience preferences shown by high view counts
+- Use performance data to inform genre selection, but don't be limited by it
+- Balance between proven performers and fresh opportunities
 
 - You must generally choose from the configured genres.
 - If a user preference is provided, prioritize shortlisting genres that align with that preference. You may suggest a new, unconfigured genre if it perfectly matches the user's explicit request.

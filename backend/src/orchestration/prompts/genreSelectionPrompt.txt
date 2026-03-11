@@ -15,6 +15,7 @@ You receive:
 - user's optional preference
 - content published in the last 14 days
 - recent genre usage derived from that content
+- top 5 most viewed content from the channel (including genre, title, and view count)
 - current search results grouped by genre
 
 ---
