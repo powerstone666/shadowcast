@@ -10,7 +10,7 @@ GENRE CLASS — Identify this before running any search.
 Genres fall into two classes. The class determines WHAT you search for and HOW you pick the topic.
 
 **CLASS 1 — TIMELESS GENRES**
-Mythology, Horror, Fantasy, Folklore, Martial Arts, Legend, Sci-Fi, Romance, Tragedy, Supernatural
+Mythology, Horror, Supernatural, Fantasy, Biography, History
 
 For Timeless genres the BEST topic comes from ORIGINAL SOURCE MATERIAL — the foundational story, epic, scripture, folk tale, or classic legend that the audience actually wants to see told.
 
@@ -23,7 +23,7 @@ SOURCE MATERIAL HIERARCHY for Timeless Genres (apply strictly in this order):
 3. World-famous, most-loved stories in that genre — the ones that have endured because they are genuinely compelling.
    - Horror: La Llorona, Kuchisake-onna, Slenderman origin, The Banshee, The Hook, Robert the Doll, Bloody Mary.
    - Mythology: Ramayana battles, Mahabharata turning points, Norse Ragnarok, Hercules labors, Medusa's origin, Pandora's box.
-   - Martial Arts/Legend: Sun Wukong's 72 transformations, Water Margin battles, legendary historical duels.
+   - Fantasy: Sun Wukong's 72 transformations, Water Margin battles, legendary historical duels.
 4. Classic adaptations with decades of proven cultural staying power.
 
 HOW TO USE NATIVE SEARCH FOR TIMELESS GENRES:
@@ -44,7 +44,7 @@ WRONG topic examples for Timeless genres (NEVER pick these):
 - "New mythology anime season 2 review" — product review, not a story
 
 **CLASS 2 — RECENCY-APPROPRIATE GENRES**
-News, Current Events, Technology, Science, Politics, Economics, Business, Sports (recent), Health
+Geopolitics, Technology, Science, Sports
 
 For these genres, recency and trend momentum ARE the right signals. Search for what is genuinely happening now with strong narrative and human-interest potential. Current events, recent discoveries, and trending topics are legitimate here.
 

@@ -8,7 +8,12 @@ import { workflowCacheService } from "../../services/workflowCacheService.js";
 const DEFAULT_VIDEO_SIZE = "720*1280";
 const POLL_INTERVAL_MS = 15_000;
 const MAX_POLL_ATTEMPTS = 40;
-const TASK_TERMINAL_STATUSES = new Set(["SUCCEEDED", "FAILED", "CANCELED", "UNKNOWN"]);
+const TASK_TERMINAL_STATUSES = new Set([
+  "SUCCEEDED",
+  "FAILED",
+  "CANCELED",
+  "UNKNOWN",
+]);
 
 // DashScope only allows one active video task per API key.
 // If a previous task is still running (e.g. orphaned from a failed parallel run),
@@ -87,7 +92,9 @@ export class DashScopeVideoGenerationService {
     return workflowCacheService.getTempDir();
   }
 
-  async testConnection(config: AgentConfigInput): Promise<{ taskId: string }> {
+  async testConnection(
+    config: AgentConfigInput,
+  ): Promise<{ taskId: string; videoUrl: string }> {
     const apiBase = normalizeDashScopeApiBase(config.apiUrl);
     const taskId = await this.submitTask({
       apiBase,
@@ -98,10 +105,18 @@ export class DashScopeVideoGenerationService {
       promptExtend: true,
     });
 
-    return { taskId };
+    // DashScope accepts task submissions even for overdue/blocked accounts —
+    // billing rejection only surfaces when the task is actually executed.
+    // Fully wait for SUCCEEDED or FAILED so "prompt check ok" is definitive.
+    const status = await this.waitForTask({ apiBase, apiKey: config.apiKey, taskId });
+    const videoUrl = status.output?.video_url?.trim() ?? "";
+
+    return { taskId, videoUrl };
   }
 
-  async generateVideoClip(input: GenerateVideoClipInput): Promise<GeneratedVideoArtifact> {
+  async generateVideoClip(
+    input: GenerateVideoClipInput,
+  ): Promise<GeneratedVideoArtifact> {
     const durationSec = validateDuration(input.durationSec);
     const apiBase = normalizeDashScopeApiBase(input.config.apiUrl);
     const promptExtend = parsePromptExtend(input.config.apiUrl);
@@ -160,43 +175,53 @@ export class DashScopeVideoGenerationService {
         await sleep(SUBMIT_RETRY_DELAY_MS, signal);
       }
 
-      const response = await fetch(`${apiBase}/services/aigc/video-generation/video-synthesis`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
-          "X-DashScope-Async": "enable",
+      const response = await fetch(
+        `${apiBase}/services/aigc/video-generation/video-synthesis`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+            "X-DashScope-Async": "enable",
+          },
+          ...(signal ? { signal } : {}),
+          body: JSON.stringify({
+            model: modelName,
+            input: {
+              prompt,
+            },
+            parameters: {
+              size: DEFAULT_VIDEO_SIZE,
+              prompt_extend: promptExtend,
+              duration: durationSec,
+            },
+          }),
         },
-        ...(signal ? { signal } : {}),
-        body: JSON.stringify({
-          model: modelName,
-          input: {
-            prompt,
-          },
-          parameters: {
-            size: DEFAULT_VIDEO_SIZE,
-            prompt_extend: promptExtend,
-            duration: durationSec,
-          },
-        }),
-      });
+      );
 
       const payload = createTaskResponseSchema.parse(await response.json());
 
       if (!response.ok || !payload.output?.task_id) {
-        const message = payload.message ?? payload.code ?? "Failed to create video generation task";
-        const isAlreadyRunning = message.toLowerCase().includes("already running");
+        const message =
+          payload.message ??
+          payload.code ??
+          "Failed to create video generation task";
+        const isAlreadyRunning = message
+          .toLowerCase()
+          .includes("already running");
         if (isAlreadyRunning && attempt < SUBMIT_RETRY_ATTEMPTS - 1) {
           // A previous task is still active on DashScope. Wait and retry.
           continue;
         }
-        throw new Error(message);
+        throw new Error(`[DashScope ${modelName}] ${message}`);
       }
 
       return payload.output.task_id;
     }
 
-    throw new Error("Failed to create video generation task: DashScope still busy after all retry attempts");
+    throw new Error(
+      `[DashScope ${modelName}] Failed to create video generation task: Dashboard still busy after all retry attempts`
+    );
   }
 
   private async waitForTask({
@@ -225,7 +250,9 @@ export class DashScopeVideoGenerationService {
 
       const payload = taskStatusResponseSchema.parse(await response.json());
       if (!response.ok) {
-        throw new Error(payload.message ?? payload.code ?? `Failed to fetch task "${taskId}"`);
+        throw new Error(
+          payload.message ?? payload.code ?? `Failed to fetch task "${taskId}"`,
+        );
       }
 
       const taskStatus = payload.output?.task_status?.trim();
@@ -243,14 +270,16 @@ export class DashScopeVideoGenerationService {
         const detail = [errorCode, errorMessage].filter(Boolean).join(": ");
 
         throw new Error(
-          `Video task "${taskId}" failed with status "${taskStatus}"${detail ? `. Details: ${detail}` : ""}`,
+          `[DashScope] Video task "${taskId}" failed with status "${taskStatus}"${detail ? `. Details: ${detail}` : ""}`,
         );
       }
 
       return payload;
     }
 
-    throw new Error(`Video task "${taskId}" timed out while waiting for completion`);
+    throw new Error(
+      `Video task "${taskId}" timed out while waiting for completion`,
+    );
   }
 
   private async downloadVideo(
@@ -276,7 +305,11 @@ function normalizeDashScopeApiBase(apiUrl: string): string {
     return `${url.origin}/api/v1`;
   }
 
-  if (normalizedPath.endsWith("/api/v1/services/aigc/video-generation/video-synthesis")) {
+  if (
+    normalizedPath.endsWith(
+      "/api/v1/services/aigc/video-generation/video-synthesis",
+    )
+  ) {
     return `${url.origin}/api/v1`;
   }
 
@@ -300,21 +333,31 @@ function normalizeDashScopeApiBase(apiUrl: string): string {
 }
 
 function validateDuration(durationSec: number): number {
-  if (!Number.isInteger(durationSec)) {
-    throw new Error("Video segment duration must be an integer for the video generation API");
+  // Convert to integer, rounding to nearest whole number
+  const intDuration = Math.round(durationSec);
+  
+  // Check if the result is a valid integer (handles NaN, Infinity)
+  if (!Number.isInteger(intDuration) || !Number.isFinite(durationSec)) {
+    throw new Error(
+      "Video segment duration must be an integer for the video generation API",
+    );
   }
 
-  if (durationSec < 2 || durationSec > 15) {
+  if (intDuration < 2 || intDuration > 15) {
     throw new Error("Video segment duration must be between 2 and 15 seconds");
   }
 
-  return durationSec;
+  return intDuration;
 }
 
 function sleep(ms: number, signal?: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
     if (signal?.aborted) {
-      reject(signal.reason instanceof Error ? signal.reason : new Error("Request aborted"));
+      reject(
+        signal.reason instanceof Error
+          ? signal.reason
+          : new Error("Request aborted"),
+      );
       return;
     }
 
@@ -325,7 +368,11 @@ function sleep(ms: number, signal?: AbortSignal): Promise<void> {
 
     function handleAbort() {
       clearTimeout(timeout);
-      reject(signal?.reason instanceof Error ? signal.reason : new Error("Request aborted"));
+      reject(
+        signal?.reason instanceof Error
+          ? signal.reason
+          : new Error("Request aborted"),
+      );
     }
 
     signal?.addEventListener("abort", handleAbort, { once: true });

@@ -18,7 +18,7 @@ const MAX_SEGMENT_DURATION_SEC = 15;
 const MAX_TOTAL_DURATION_SEC = 120;
 export const directorSegmentSchema = z.object({
   order: z.number().int().min(1),
-  durationSec: z.number().positive().max(MAX_SEGMENT_DURATION_SEC),
+  durationSec: z.number().int().positive().max(MAX_SEGMENT_DURATION_SEC),
   beat: z.string().trim().min(1),
   narration: z.string().trim().min(1),
   visualDirection: z.string().trim().min(1),
@@ -144,11 +144,11 @@ export class DirectorPlanWorkflow {
     const configuredGenres = normalizeGenres(genrePool.selectedGenres);
 
     if (configuredGenres.length === 0) {
-      throw new ConflictError("No genres are configured");
+      this.logger.warn("No genres are configured in the database. Proceeding with unconfigured genre.");
     }
 
     if (!configuredGenres.includes(genre)) {
-      throw new ConflictError(`Genre "${genre}" is not configured`);
+      this.logger.warn(`Genre "${genre}" is not in the configured list. Proceeding anyway per relaxed validation.`);
     }
 
     this.logger.info("Context loaded successfully");
@@ -290,6 +290,13 @@ export function validateDirectorBreakdown(
       );
     }
 
+    // Check if duration is an integer
+    if (!Number.isInteger(segment.durationSec)) {
+      throw new Error(
+        `Director breakdown segment ${segment.order} duration must be an integer, got ${segment.durationSec}. Please use whole numbers (e.g., 10, 12, 15).`,
+      );
+    }
+
     if (segment.durationSec > MAX_SEGMENT_DURATION_SEC) {
       throw new Error(
         `Director breakdown segment ${segment.order} exceeds ${MAX_SEGMENT_DURATION_SEC} seconds`,
@@ -303,7 +310,7 @@ export function validateDirectorBreakdown(
 
   if (totalDurationSec > MAX_TOTAL_DURATION_SEC) {
     throw new Error(
-      `Director breakdown exceeds ${MAX_TOTAL_DURATION_SEC} seconds in total duration`,
+      `Director breakdown exceeds ${MAX_TOTAL_DURATION_SEC} seconds (was ${totalDurationSec}s). The LLM must stay strictly within the 120-second limit. Please adjust segment durations or remove less critical segments.`,
     );
   }
 
@@ -314,5 +321,6 @@ export function validateDirectorBreakdown(
 }
 
 function roundDuration(value: number): number {
-  return Math.round(value * 100) / 100;
+  // Return integer duration - ensure whole number for video generation API
+  return Math.round(value);
 }

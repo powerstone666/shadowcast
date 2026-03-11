@@ -24,7 +24,7 @@ GENRE CLASS — Read this before selecting anything.
 Genres fall into two classes. The class determines HOW you pick the topic.
 
 **CLASS 1 — TIMELESS GENRES**
-Mythology, Horror, Fantasy, Folklore, Martial Arts, Legend, Sci-Fi, Romance, Tragedy, Supernatural
+Mythology, Horror, Supernatural, Fantasy, Biography, History
 
 For these genres the BEST topic is NOT the most recent adaptation, game release, or streaming title.
 It is the most compelling ORIGINAL SOURCE MATERIAL — the foundational story, epic, scripture, folk tale, or legend that the audience actually wants to see told.
@@ -36,9 +36,11 @@ SOURCE MATERIAL HIERARCHY for Timeless Genres (apply strictly in this order):
    - Horror → the originating legend, folk tale, or world-famous classic. NOT a Netflix 2026 release.
 2. Classic folklore and oral tradition — stories passed down for generations across cultures.
 3. World-famous, most-loved stories in that genre — the ones that have endured because they are genuinely compelling.
-   - Horror: The Tell-Tale Heart, Dracula, Frankenstein, Japanese Kuchisake-onna, Slenderman origin, The Banshee, La Llorona.
+   - Horror/Supernatural: The Tell-Tale Heart, Dracula, Frankenstein, Japanese Kuchisake-onna, Slenderman origin, The Banshee, La Llorona.
    - Mythology: Ramayana battles, Mahabharata turning points, Norse Ragnarok, Hercules labors, Medusa's origin.
-   - Martial Arts/Legend: Sun Wukong's 72 transformations, The Water Margin heroes, legendary duel stories.
+   - Fantasy: Sun Wukong's 72 transformations, The Water Margin heroes, legendary duel stories.
+   - Biography: The untold story of Nikola Tesla's lost years, Cleopatra's political genius, how a forgotten scientist changed the world.
+   - History: The fall of Constantinople, the real story behind the Trojan Horse, the last stand of the 300 Spartans.
 4. Classic adaptations with decades of proven cultural staying power.
 
 WHAT TO TREAT AS EVIDENCE, NOT AS THE TOPIC:
@@ -49,7 +51,7 @@ WHAT TO TREAT AS EVIDENCE, NOT AS THE TOPIC:
 The topic for a Timeless Genre should ALWAYS be traceable to a real, foundational source — a text, a legend, a folk tale, a classic story. Never a product release.
 
 **CLASS 2 — RECENCY-APPROPRIATE GENRES**
-News, Current Events, Technology, Science, Politics, Economics, Business, Sports (recent), Health
+Geopolitics, Technology, Science, Sports
 
 For these genres, recency and trending momentum ARE appropriate primary signals. Current events, recent discoveries, and trending stories are legitimate topics. Use search results to find what is genuinely hot right now.
 
@@ -57,9 +59,9 @@ For these genres, recency and trending momentum ARE appropriate primary signals.
 
 SELECTION RULES:
 
-- Select exactly one genre to post next from the configured genres.
+- Select exactly one genre to post next, generally from the configured genres.
 - First, identify which class the genre belongs to (Timeless or Recency-Appropriate).
-- If a user preference is provided, strongly prioritize aligning the chosen genre, topic, and title to that preference.
+- If a user preference is provided, strongly prioritize aligning the chosen genre, topic, and title to that preference. If the user's requested topic fits best in an unconfigured genre, you are allowed to select that new genre.
 - Avoid repeating recently overused genres unless the story angle is clearly different and stronger.
 - Do not choose a topic already covered recently unless the new angle is clearly fresher and more compelling.
 - Treat currentDate/currentYear as the timeline anchor for Recency genres. For Timeless genres, the year is irrelevant to topic choice — a great story from 200 BCE is still a great story.

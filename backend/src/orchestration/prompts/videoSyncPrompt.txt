@@ -7,7 +7,7 @@ You receive:
 **SCROLL OPTIMIZATION - THE 1-3 SECOND HOOK:**
 - **SEGMENT 1 MUST STOP SCROLLING**: The first segment's visuals must complement a shocking audio hook.
 - **VISUAL HOOK REQUIREMENTS**:
-  - First visual should be dramatic, emotional, or visually striking anime-style scene
+  - First visual should be dramatic, emotional, or visually striking — matching the genre's signature style
   - Should work within 1-3 seconds to grab attention
   - Examples: Dramatic close-up of character's expression, symbolic transformation scene, impactful moment with dynamic lighting
   - Must match shocking/contradictory audio hook from script
@@ -29,7 +29,7 @@ You receive:
 - **CONCLUSION VISUAL REQUIREMENTS**:
   - **EMOTIONAL PAYOFF**: Visuals that resolve the emotional journey started in the hook
   - **CLEAR RESOLUTION**: Imagery that answers the central question or conflict
-  - **MEMORABLE CLOSING**: End with powerful, emotionally resonant anime-style scene
+  - **MEMORABLE CLOSING**: End with powerful, emotionally resonant scene in the genre's signature style
   - **VISUAL CALLBACK**: Use imagery that ties back to opening visuals (similar composition but changed meaning)
   - **SATISFYING COMPLETION**: Story should feel visually complete, not abrupt
 - **CONCLUSION VISUAL TECHNIQUES**:
@@ -44,12 +44,12 @@ Your job is to create a synchronized segment package that keeps narration and vi
 **PACING REQUIREMENTS:**
 - **NO DEAD AIR**: Visuals must match rapid-fire dialogue pace
 - **CONTINUOUS FLOW**: Each segment should flow seamlessly into the next with no visual pauses
-- **ENERGETIC VISUALS**: PromptIntent should describe dynamic, engaging anime-style scenes
+- **ENERGETIC VISUALS**: PromptIntent should describe dynamic, engaging scenes in the genre's signature visual style
 - **DIALOGUE-FOCUSED**: When dialogue occurs, visuals must focus on character expressions and lip-sync
 - **CONSTANT ACTION**: Every segment must show something physically happening — a confrontation, a reveal, a character in motion, an incident unfolding. No segment is a static scene with only music.
 - **ZERO MUSIC-ONLY GAPS**: Every segment must have narration or dialogue for its entire duration. Do not create or allow any gap where only music plays. Music is always background, never the main content.
 
-All visuals should use Anime-style animation. The promptIntent should describe anime-style scenes, characters, and cinematic compositions with **DYNAMIC MOVEMENT** and **EMOTIONAL INTENSITY**.
+All visuals should use the genre's signature visual style (as defined in the director plan). The promptIntent should describe scenes, characters, and cinematic compositions with **DYNAMIC MOVEMENT** and **EMOTIONAL INTENSITY**, rendered in the appropriate genre style.
 The sequence must stay faithful to the breakdown order and the story.
 Do not reorder segments.
 Do not change the duration of any segment.
@@ -88,6 +88,16 @@ NEVER:
 - For emotional moments: dynamic camera movements, not static shots
 - For action/revelation: dramatic angles, speed lines, impactful compositions
 - Maintain visual energy throughout - no static, boring scenes
+
+**SCENE CONTINUITY (CRITICAL FOR AVOIDING AI HALLUCINATIONS):**
+- Adjacent segments happening in the same scene MUST explicitly carry over the same visual anchors.
+- If Segment 1 is "a knight in silver armor with a red cape standing in a snowy forest," Segment 2 cannot just be "a knight fighting." It MUST specify "the SAME knight in silver armor with a red cape in the SAME snowy forest."
+- Write your `promptIntent` and `continuityNotes` to lock in the environment, the lighting, the subjects, and their clothing so the video generator doesn't randomly change the setting or the character design between cuts.
+- In `continuityNotes`, you must explicitly state: "Continues from previous segment with the same [character description] in [environment description] under [lighting condition]."
+- If the scene changes, state the transition clearly: "Transition from [previous setting] to [new setting] while maintaining [consistent character details]."
+- Treat the video as a continuous camera shoot, not a series of random stock clips.
+- When characters reappear across multiple segments, consistently describe their exact appearance: clothing color, hairstyle, accessories, age, facial features.
+- When environments persist across segments, consistently describe: time of day, weather, architectural details, color palette, background elements.
 
 Return valid JSON only in this exact shape:
 {

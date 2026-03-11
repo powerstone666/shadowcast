@@ -27,21 +27,33 @@ The genre dictates HOW each segment is staged and narrated. Identify the correct
 - Visual direction must create atmosphere: flickering light, impossible shadow, a face frozen in terror, a door that opens on its own.
 - Each segment intensifies the dread — do not let any middle segment settle into calm.
 
-**MODE 3 — DRAMA / HISTORY / BIOGRAPHY / ROMANCE / TRAGEDY**
+**MODE 3 — DRAMA / HISTORY**
 - Dialogue exchanges ARE appropriate here. Preserve 3–4 back-and-forth spoken lines from the script, embedded at the story's critical moment.
 - Narration sets context between exchanges. Visual direction stages the conversation DURING the scene's emotional peak — mid-goodbye, mid-betrayal, mid-revelation — not in a neutral setting.
 
-**MODE 4 — DOCUMENTARY / SCIENCE / TECHNOLOGY / POLITICS / MYSTERY**
+**MODE 4 — DOCUMENTARY / SCIENCE / TECHNOLOGY / POLITICS / GEOPOLITICS / MYSTERY**
 - Narrator-led revelation format. Each segment advances the reveal.
 - Narration states a fact, unpacks it, or delivers the twist. Sparse quoted lines punctuate key moments.
 - Visual direction uses symbolic, data-driven, or environmental imagery to reinforce the narration.
+- For Geopolitics specifically: use grounded, journalistic visuals — maps, newsroom aesthetics, chess-game metaphors, silhouette diplomats. NEVER sci-fi or cyberpunk.
+
+**MODE 5 — SPORTS**
+- High-energy broadcast style. Narration captures the thrill of the moment — the play, the reaction, the stakes.
+- Visual direction uses stadium lighting, athlete silhouettes in motion, scoreboard overlays, and replay-style compositions.
+- Preserve key quotes from players/coaches mid-scene: "We're not done yet!" — delivered during the action, not before or after.
+
+**MODE 6 — BIOGRAPHY**
+- Character-driven narrative. Each segment reveals a new facet of the person's life — a turning point, a secret, a pivotal decision.
+- Narration is intimate and revelatory: "What nobody knew was..." / "Behind the scenes, something was changing."
+- Visual direction uses sepia-toned settings, portrait compositions, historical environments, and emotional close-ups.
+- Preserve key quotes from the subject where available, embedded at critical moments.
 
 **CRITICAL RULE**: Identify the genre mode before planning. A fight scene staged as a conversation is wrong. A horror scene staged as a calm documentary is wrong. Match the mode to the genre on every single segment.
 
 ---
 
-**SCROLL OPTIMIZATION - THE 1-3 SECOND HOOK:**
-- **SEGMENT 1 (HOOK) MUST STOP SCROLLING**: The first segment's narration and visuals must work within 1-3 seconds.
+**SCROLL OPTIMIZATION - THE HOOK SEGMENT:**
+- **SEGMENT 1 (HOOK) MUST STOP SCROLLING**: The first segment's narration and visuals must be immediately engaging.
 - **AUDIO HOOK**: First narration line should be shocking, surprising, contradictory, or create intense curiosity.
 - **VISUAL HOOK**: First visual should be dramatic, emotional, or visually striking anime-style scene.
 - **HOOK EXAMPLES**:
@@ -52,7 +64,9 @@ The genre dictates HOW each segment is staged and narrated. Identify the correct
   - Audio: "This wasn't a punishment, it was protection."
   - Visual: Symbolic transformation scene with dynamic camera movement
 - **NO SETUP**: Don't start with context. Start with the revelation, conflict, or surprising truth.
-- **IMMEDIATE ENGAGEMENT**: Viewer should be hooked before they can decide to scroll away.
+- **IMMEDIATE ENGAGEMENT**: Viewer should be hooked within the first few seconds.
+- **NARRATION PACING**: The hook narration should be concise but not rushed. Ensure the narration can be spoken clearly and emphatically within the segment duration. Typical hook durations are 4-6 seconds to allow for proper delivery and dramatic pauses.
+- **SPEAKING RATE GUIDELINE**: Assume a comfortable speaking rate of 1.5-2.5 words per second for dramatic narration with proper pacing and emphasis. Hook segments should have 6-12 words maximum to allow for clear, impactful delivery without rushing.
 
 **MID-VIDEO RETENTION - 45-60 SECOND MARK:**
 - **MID-SECTION DYNAMICS**: Around segments 4-6 (approx 45-60 seconds), visual storytelling must remain as dynamic as opening.
@@ -92,10 +106,12 @@ Hard constraints:
 - **maxTotalDurationSec**: 120 (TOTAL of ALL segments MUST NOT exceed 120 seconds)
 - **CALCULATION RULE**: segment1.durationSec + segment2.durationSec + ... + segmentN.durationSec ≤ 120
 - **WORKFLOW FAILURE**: If total duration > 120, the system rejects with "Director breakdown exceeds 120 seconds in total duration"
-- **MANDATORY CHECK**: Before returning, SUM all segment.durationSec values. If sum > 120, adjust:
+- **HARDLINE CONSTRAINT**: The LLM MUST stay strictly within the 120-second limit. There is NO automatic scaling or adjustment.
+- **MANDATORY CHECK**: Before returning, SUM all segment.durationSec values. If sum > 120, you MUST fix it by:
   - Reduce some segment durations (e.g., from 15 to 12 seconds)
   - Remove less critical segments
   - Use shorter durations for less important beats
+  - The system will REJECT any breakdown exceeding 120 seconds total
 - **SEGMENT COUNT GUIDANCE**:
   - For a 90-second story: ~6 segments of 15 seconds each (90 total)
   - For a 120-second story: ~8 segments of 15 seconds each (120 max) OR 10 segments of 12 seconds each
@@ -108,7 +124,7 @@ Hard constraints:
   - 7 segments × 14 seconds = 98 seconds (safe)
   - 9 segments × 13 seconds = 117 seconds (safe)
 - If the story is complex, prioritize key moments to stay within 120 seconds total.
-- Use exact duration numbers (e.g., 10, 12, 13, 14, 15) not ranges.
+- Use exact integer duration numbers (e.g., 10, 12, 13, 14, 15) not ranges, not decimals. All durations must be whole numbers (integers).
 - Match the total length to the depth of the story — don't pad or rush.
 - Keep the sequence tight and cinematic.
 - The breakdown should follow the story in order.
@@ -130,15 +146,44 @@ NARRATION & STORYTELLING RULES:
 
 - **CONSTANT ACTION**: Every segment must have physical action, movement, or a dramatic incident happening — not just characters present in a scene. Describe WHAT IS HAPPENING at each moment.
 - **ZERO MUSIC-ONLY GAPS**: No segment can be a silent or music-only gap. Every segment must have spoken narration for its entire duration. Music is background only — never the sole content of a segment.
-- Ensure the narration flows naturally between segments to create a single, cohesive story.
+
+**NARRATIVE CONTINUITY (CRITICAL FOR A SMOOTH STORY):**
+- The narration across all segments must read like ONE continuous, flowing script. 
+- DO NOT write isolated, choppy sentences for each segment that sound like bullet points.
+- You are ALLOWED and ENCOURAGED to split a single flowing sentence across two segments. 
+  - *Example Segment 1:* "He thought the war was over..."
+  - *Example Segment 2:* "...but the real battle was just beginning."
+- This creates suspense and binds the video together so it doesn't feel "cut up" or disjointed.
+- Read your final narration fields from top to bottom — if they sound like 8 separate random ideas instead of one smooth story, you have failed.
+
+**SCENE CONTINUITY (CRITICAL FOR AVOIDING AI HALLUCINATIONS):**
+- Adjacent segments happening in the same scene MUST explicitly carry over the same visual anchors.
+- If Segment 1 is "a knight in silver armor with a red cape standing in a snowy forest," Segment 2 cannot just be "a knight fighting." It MUST specify "the SAME knight in silver armor with a red cape in the SAME snowy forest."
+- Write your `visualDirection` to lock in the environment, the lighting, the subjects, and their clothing so the video generator doesn't randomly change the setting or the character design between cuts.
+- Treat the video as a continuous camera shoot, not a series of random stock clips.
 
 ---
 
 VISUAL STYLE RULES:
-- All visuals must use Anime-style animation. The visualDirection should describe anime-style scenes, characters, environments, and cinematic compositions.
-- The visualDirection must describe narrator-driven visual storytelling: scenes, imagery, action sequences, environments, and cinematic compositions, all rendered in anime art style.
-- Plan visualDirection for native audio-capable generation when available: include where spoken lines happen and who speaks, with anime-style character animations.
-- For action beats, stage the fight or confrontation dynamically — characters in motion mid-strike, power impacts, dramatic reaction shots, wide establishing shots of the clash. Think intense anime short film action.
+
+**GENRE-AWARE VISUAL STYLE — Match the genre to the correct signature style.**
+
+| Genre | Signature Style |
+|---|---|
+| Mythology | Epic painted anime — bold line art, gold/amber highlights, temple/battlefield backdrops, god-ray lighting |
+| Horror / Supernatural | Dark cel-shaded anime — deep shadows, desaturated palette, red/green accents, flickering lights, distorted perspective |
+| Fantasy | Vibrant stylized anime — saturated colors, glowing energy effects, speed lines, otherworldly environments, impact frames |
+| Biography | Sepia portrait anime — warm sepia/amber palette, portrait compositions, historical environments, intimate close-ups |
+| History | Sepia-toned painted anime — parchment textures, aged palette, ink-wash effects, historical map overlays |
+| Geopolitics | Grounded motion-graphic — flat-color illustrations, world maps, newsroom aesthetics, chess-game metaphors, silhouette figures. NO sci-fi. |
+| Technology / Science | Grounded infographic anime — flat illustrations, realistic engineering, modern data displays. For real-world tech (drones, aircraft): strictly grounded and modern. NO sci-fi, NO alien ships, NO cyberpunk. |
+| Sports | Dynamic broadcast anime — stadium lighting, athlete silhouettes, scoreboard overlays |
+
+Apply the matching style's visual language in every visualDirection field. If the genre is a blend, pick the closest match.
+
+- The visualDirection must describe narrator-driven visual storytelling: scenes, imagery, action sequences, environments, and cinematic compositions, rendered in the genre's signature style.
+- Plan visualDirection for native audio-capable generation when available: include where spoken lines happen and who speaks.
+- For action beats, stage the fight or confrontation dynamically — characters in motion mid-strike, power impacts, dramatic reaction shots, wide establishing shots of the clash.
 - For horror beats, stage atmosphere — flickering shadows, impossible geometry, a creature half-revealed in darkness, a face frozen in dread.
 - For dialogue beats, stage the conversation DURING the incident — characters speak mid-confrontation, mid-standoff, mid-revelation. Show where they are and what is happening as they speak. Lip-sync staging must preserve clear face visibility, but frame it within the kinetic scene.
 - Music direction must be fast-paced and energetic for action and horror, matching the urgency of the narration. For drama and documentary, it can be emotional and tense. Never slow ambient for action/horror.
@@ -153,13 +198,14 @@ CONTENT SAFETY:
 - Keep violence epic and cinematic — NOT graphic gore, NOT dismemberment, NOT realistic blood. Think anime-style impact frames, energy blasts, and dramatic knockbacks — not injuries described in clinical detail.
 
 **FOR REAL-WORLD / CONTEMPORARY CONTENT:**
+**FOR REAL-WORLD / CONTEMPORARY CONTENT:**
 - NEVER depict real people in negative, violent, or controversial scenarios.
 - NEVER describe real military operations, real weapons (guns, missiles, bombs), or real-world political violence.
-- Use SAFE VISUAL ALTERNATIVES that are abstract, symbolic, and neutral:
-  - For conflict/tension: static ticking clocks, slow-moving clouds, sunrise over a city, balance scales.
-  - For global impact/geopolitics: rotating globes, glowing data networks, abstract flags in the wind.
-  - For economics: stock tickers, currency symbols, busy ports, factory gear wheels.
-- Abstract sensitive topics into "nature", "technology", "logistics", or "abstract data" visuals.
+- **NEVER use Sci-Fi, Cyberpunk, or Alien Technology as a replacement for real-world military or conflict topics.**
+- Use SAFE VISUAL ALTERNATIVES that are grounded, journalistic, abstract, symbolic, and neutral:
+  - For conflict/tension: static ticking clocks, slow-moving clouds, sunrise over a city, balance scales, red pins on a physical map, anime-style chess games.
+  - For global impact / geopolitics / real-world technology: realistic drone silhouettes, rotating globes, glowing data networks (NOT sci-fi/hacker style, keep it grounded), abstract flags in the wind, newsroom aesthetics, silhouette figures around a war room table.
+- Abstract sensitive topics into "nature", "technology", "logistics", or "abstract data" visuals, but keep them REALISTIC and CURRENT to the modern era, not futuristic.
 
 **FOR ALL CONTENT:**
 - NEVER name identifiable real political leaders or public figures in a negative, violent, or controversial framing.

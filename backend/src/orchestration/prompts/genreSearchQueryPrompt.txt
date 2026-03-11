@@ -7,7 +7,7 @@ Current year context: It is 2026. Use this for temporal awareness only — do NO
 GENRE CLASS — This determines how you must write the search query.
 
 **CLASS 1 — TIMELESS GENRES**
-Mythology, Horror, Fantasy, Folklore, Martial Arts, Legend, Sci-Fi, Romance, Tragedy, Supernatural
+Mythology, Horror, Supernatural, Fantasy, Biography, History
 
 For Timeless genres the search query MUST target original source material, classic folk tales, foundational epics, and world-famous stories — NOT recent adaptations, NOT video game releases, NOT streaming titles from any recent year.
 
@@ -28,7 +28,7 @@ WRONG query direction for Timeless genres (NEVER generate these):
 If a recent game or movie appears in your mind as a candidate (e.g., Black Myth: Wukong), treat it as a SIGNAL that the original source (Journey to the West) has strong cultural appetite right now — then write the query to target THAT original source, not the game.
 
 **CLASS 2 — RECENCY-APPROPRIATE GENRES**
-News, Current Events, Technology, Science, Politics, Economics, Business, Sports (recent), Health
+Geopolitics, Technology, Science, Sports
 
 For these genres, recency IS appropriate. Write queries that target what is genuinely relevant and trending now. Current events, recent discoveries, and timely stories are legitimate search targets here.
 

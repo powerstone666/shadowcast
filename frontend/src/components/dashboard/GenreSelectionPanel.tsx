@@ -7,26 +7,16 @@ import { mutedLabelClass, sectionTitleClass, surfaceClass } from '../../ui'
 type StackType = 'selected' | 'pool'
 
 const genreIcons: Record<string, string> = {
-  History: '🏺',
+  Mythology: '⚡',
+  Horror: '🩸',
+  Supernatural: '👻',
+  Fantasy: '🐉',
+  Geopolitics: '🌍',
   Technology: '💻',
   Science: '🔬',
-  Philosophy: '🧠',
-  Fantasy: '🐉',
-  Finance: '💹',
-  Horror: '🩸',
-  Mystery: '🕵️',
-  'True Crime': '🔍',
-  Space: '🚀',
-  Mythology: '⚡',
-  Psychology: '🫀',
+  Sports: '⚽',
   Biography: '📖',
-  Cinema: '🎬',
-  Gaming: '🎮',
-  Music: '🎵',
-  Nature: '🌿',
-  Politics: '🏛️',
-  Culture: '🎭',
-  Education: '🎓',
+  History: '🏺',
 }
 
 function GenreSelectionPanel() {
@@ -64,6 +54,7 @@ function GenreSelectionPanel() {
         })),
       )
     } catch {
+      // ignore
     } finally {
       setIsLoading(false)
     }

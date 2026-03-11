@@ -8,14 +8,18 @@ function CurrentPipelineRun({
   pipelineState,
   isStartingWorkflow,
   isTerminatingWorkflow,
+  isCleaningUp,
   onRunWorkflow,
   onTerminateWorkflow,
+  onCleanup,
 }: {
   pipelineState: PipelineRealtimeSnapshot;
   isStartingWorkflow: boolean;
   isTerminatingWorkflow: boolean;
+  isCleaningUp: boolean;
   onRunWorkflow: (note?: string) => void;
   onTerminateWorkflow: () => void;
+  onCleanup: () => void;
 }) {
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
   const [note, setNote] = useState("");
@@ -101,6 +105,18 @@ function CurrentPipelineRun({
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <h2 className={`${sectionTitleClass} text-2xl md:text-[2rem]`}>Current Pipeline Run</h2>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+          <button
+            type="button"
+            onClick={onCleanup}
+            disabled={isCleaningUp || pipelineState.isRunning}
+            className={`rounded-full px-4 py-3 text-sm font-semibold min-h-[44px] ${
+              !isCleaningUp && !pipelineState.isRunning
+                ? "border border-[rgba(204,116,64,0.2)] bg-[rgba(255,255,255,0.6)] text-[#cc7440] hover:bg-white transition-colors"
+                : "border border-[rgba(182,90,51,0.14)] bg-[rgba(255,255,255,0.55)] text-[#cc7440]/60"
+            }`}
+          >
+            {isCleaningUp ? "Cleaning..." : "Clean Temp"}
+          </button>
           <button
             type="button"
             onClick={() => setIsNoteModalOpen(true)}

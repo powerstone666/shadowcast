@@ -28,8 +28,10 @@ export class TestConnectService {
   private readonly youtubeOAuthService = new YoutubeOAuthService();
   private readonly agentConfigService = new AgentConfigService();
   private readonly agentRuntime = new AgentRuntime(this.agentConfigService);
-  private readonly videoGenerationService = new DashScopeVideoGenerationService();
-  private readonly imageGenerationService = new DashScopeImageGenerationService();
+  private readonly videoGenerationService =
+    new DashScopeVideoGenerationService();
+  private readonly imageGenerationService =
+    new DashScopeImageGenerationService();
   private readonly log: (message: string) => void;
   private isRunning = false;
 
@@ -84,11 +86,19 @@ export class TestConnectService {
   ): Promise<void> {
     try {
       const configs = await this.agentConfigService.listConfigs();
-      const configuredRoleKeys = new Set(configs.map((config) => config.roleKey));
-      const missingRoleKeys = REQUIRED_ROLE_KEYS.filter((roleKey) => !configuredRoleKeys.has(roleKey));
+      const configuredRoleKeys = new Set(
+        configs.map((config) => config.roleKey),
+      );
+      const missingRoleKeys = REQUIRED_ROLE_KEYS.filter(
+        (roleKey) => !configuredRoleKeys.has(roleKey),
+      );
 
-      const configuredRequiredCount = REQUIRED_ROLE_KEYS.filter((r) => configuredRoleKeys.has(r)).length;
-      this.log(`secrets configured: ${configuredRequiredCount}/${REQUIRED_ROLE_KEYS.length}`);
+      const configuredRequiredCount = REQUIRED_ROLE_KEYS.filter((r) =>
+        configuredRoleKeys.has(r),
+      ).length;
+      this.log(
+        `secrets configured: ${configuredRequiredCount}/${REQUIRED_ROLE_KEYS.length}`,
+      );
 
       if (missingRoleKeys.length > 0) {
         this.log(`missing model configs: ${missingRoleKeys.join(", ")}`);
@@ -138,7 +148,9 @@ export class TestConnectService {
 
       if (!response.ok) {
         const details = await readErrorDetails(response);
-        throw new Error(details ?? `API key check failed with status ${response.status}`);
+        throw new Error(
+          details ?? `API key check failed with status ${response.status}`,
+        );
       }
 
       this.log(`api key active: ${config.roleKey}`);
@@ -183,15 +195,21 @@ export class TestConnectService {
     }
   }
 
-  private async testRealModelConnection(config: AgentConfigInput): Promise<void> {
+  private async testRealModelConnection(
+    config: AgentConfigInput,
+  ): Promise<void> {
     if (config.roleKey === "selector") {
       await this.testChatRolePrompt(config.roleKey);
 
       const selectorNativeSearchExtraBody = getNativeSearchExtraBody(config);
       if (selectorNativeSearchExtraBody) {
-        await this.testSelectorNativeSearchPrompt(selectorNativeSearchExtraBody);
+        await this.testSelectorNativeSearchPrompt(
+          selectorNativeSearchExtraBody,
+        );
       } else {
-        this.log("web search skipped: selector (native search not supported by configured model)");
+        this.log(
+          "web search skipped: selector (native search not supported by configured model)",
+        );
       }
 
       return;
@@ -210,21 +228,35 @@ export class TestConnectService {
     await this.testChatRolePrompt(config.roleKey);
   }
 
-  private async testVideoGenerationPrompt(config: AgentConfigInput): Promise<void> {
+  private async testVideoGenerationPrompt(
+    config: AgentConfigInput,
+  ): Promise<void> {
     try {
+      this.log(
+        `video model checking: ${config.roleKey} (submitting 2-sec test clip, waiting for render…)`,
+      );
       const result = await this.videoGenerationService.testConnection(config);
       this.log(`prompt check ok: ${config.roleKey} (task ${result.taskId})`);
+      if (result.videoUrl) {
+        this.log(`video url: ${result.videoUrl}`);
+      }
     } catch (error) {
-      this.log(`prompt check failed (${config.roleKey}): ${toErrorMessage(error)}`);
+      this.log(
+        `prompt check failed (${config.roleKey}): ${toErrorMessage(error)}`,
+      );
     }
   }
 
-  private async testImageGenerationPrompt(config: AgentConfigInput): Promise<void> {
+  private async testImageGenerationPrompt(
+    config: AgentConfigInput,
+  ): Promise<void> {
     try {
       const result = await this.imageGenerationService.testConnection(config);
       this.log(`prompt check ok: ${config.roleKey} (task ${result.taskId})`);
     } catch (error) {
-      this.log(`prompt check failed (${config.roleKey}): ${toErrorMessage(error)}`);
+      this.log(
+        `prompt check failed (${config.roleKey}): ${toErrorMessage(error)}`,
+      );
     }
   }
 
@@ -237,7 +269,8 @@ export class TestConnectService {
         return;
       }
 
-      const channelLabel = status.channelTitle ?? status.channelId ?? "connected account";
+      const channelLabel =
+        status.channelTitle ?? status.channelId ?? "connected account";
       this.log(`youtube oauth ok: ${channelLabel}`);
     } catch (error) {
       this.log(`youtube oauth check failed: ${toErrorMessage(error)}`);
@@ -250,21 +283,24 @@ function normalizeModelsEndpoint(apiUrl: string): string {
   const pathname = normalizedUrl.pathname.replace(/\/$/, "");
 
   if (pathname.endsWith("/chat/completions")) {
-    normalizedUrl.pathname = pathname.slice(0, -"/chat/completions".length) + "/models";
+    normalizedUrl.pathname =
+      pathname.slice(0, -"/chat/completions".length) + "/models";
     normalizedUrl.search = "";
     normalizedUrl.hash = "";
     return normalizedUrl.toString();
   }
 
   if (pathname.endsWith("/completions")) {
-    normalizedUrl.pathname = pathname.slice(0, -"/completions".length) + "/models";
+    normalizedUrl.pathname =
+      pathname.slice(0, -"/completions".length) + "/models";
     normalizedUrl.search = "";
     normalizedUrl.hash = "";
     return normalizedUrl.toString();
   }
 
   if (pathname.endsWith("/images/generations")) {
-    normalizedUrl.pathname = pathname.slice(0, -"/images/generations".length) + "/models";
+    normalizedUrl.pathname =
+      pathname.slice(0, -"/images/generations".length) + "/models";
     normalizedUrl.search = "";
     normalizedUrl.hash = "";
     return normalizedUrl.toString();
@@ -304,7 +340,10 @@ function normalizeModelsEndpoint(apiUrl: string): string {
   return normalizedUrl.toString();
 }
 
-function formatModeLabel(mode: ConnectionTestMode, roleKey?: ConnectionTestRoleKey): string {
+function formatModeLabel(
+  mode: ConnectionTestMode,
+  roleKey?: ConnectionTestRoleKey,
+): string {
   const baseLabel = mode === "real_prompt" ? "model check" : "api check";
   return roleKey ? `${baseLabel}: ${roleKey}` : baseLabel;
 }

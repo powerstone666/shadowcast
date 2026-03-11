@@ -77,6 +77,7 @@ function ApiConfigurationSection() {
       const nextStatus = await fetchYoutubeOAuthStatus()
       setOauthStatus(nextStatus)
     } catch {
+      // ignore
     } finally {
       setIsLoadingOauthStatus(false)
     }
@@ -89,6 +90,7 @@ function ApiConfigurationSection() {
       const nextStatus = await fetchYoutubeOAuthStatus()
       setOauthStatus(nextStatus)
     } catch {
+      // ignore
     } finally {
       setIsRefreshingOauth(false)
     }
@@ -106,6 +108,7 @@ function ApiConfigurationSection() {
         return nextConfigs
       })
     } catch {
+      // ignore
     } finally {
       setIsLoadingAgentConfigs(false)
     }
@@ -117,6 +120,7 @@ function ApiConfigurationSection() {
       const languagePref = await fetchAudioLanguagePreference()
       setAudioLanguage(languagePref)
     } catch {
+      // ignore
     } finally {
       setIsLoadingAudioLanguage(false)
     }
@@ -129,6 +133,7 @@ function ApiConfigurationSection() {
       setAudioLanguage(savedPref)
       setSuccessToast(`Audio language updated to ${language}`)
     } catch {
+      // ignore
     } finally {
       setIsSavingAudioLanguage(false)
     }
@@ -160,6 +165,7 @@ function ApiConfigurationSection() {
       }))
       setSuccessToast(`${formatRoleLabel(roleKey)} updated successfully`)
     } catch {
+      // ignore
     } finally {
       setActiveSaveKey(null)
     }

@@ -9,7 +9,7 @@ GENRE CLASS — Identify this before generating a single query.
 Genres fall into two classes. The class determines what your queries must target.
 
 **CLASS 1 — TIMELESS GENRES**
-Mythology, Horror, Fantasy, Folklore, Martial Arts, Legend, Sci-Fi, Romance, Tragedy, Supernatural
+Mythology, Horror, Supernatural, Fantasy, Biography, History
 
 For Timeless genres the script must be built from ORIGINAL SOURCE MATERIAL — the foundational text, epic, scripture, folk legend, or classic story that the topic actually comes from. Your three queries must dig into that original source, not into any recent adaptation of it.
 
@@ -63,7 +63,7 @@ Examples:
 ---
 
 **CLASS 2 — RECENCY-APPROPRIATE GENRES**
-News, Current Events, Technology, Science, Politics, Economics, Business, Sports (recent), Health
+Geopolitics, Technology, Science, Sports
 
 For these genres, the queries should target current, accurate, and detailed information about the specific topic. Use all three queries to get different angles: what happened, why it matters, and what the human story behind it is.
 

@@ -158,8 +158,8 @@ orchestrationRouter.post("/run-workflow", async (req, res) => {
     );
 
     pipelineRealtimeService.beginStage(
-      "video_generation",
-      "video generation started",
+      "cameraman_plan",
+      "cameraman planning started",
     );
     const videoGenerationResult = await videoGenerationWorkflow.run({
       genre: genreSelectionResult.selectedGenre,
@@ -237,6 +237,17 @@ orchestrationRouter.post("/run-workflow", async (req, res) => {
     if (runContext) {
       await workflowControlService.finishRun(runContext.runId);
     }
+  }
+});
+
+orchestrationRouter.post("/cleanup-temp", async (_req, res) => {
+  try {
+    await workflowCacheService.cleanCache();
+    pipelineRealtimeService.appendLog("manual cleanup: removed temporary workflow files");
+    res.status(200).json({ success: true, message: "Temporary artifacts cleaned up" });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    res.status(500).json({ error: message });
   }
 });
 

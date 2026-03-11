@@ -38,3 +38,16 @@ async function parseErrorPayload(response: Response): Promise<string> {
     return `Workflow failed with status ${response.status}`
   }
 }
+
+export async function cleanupTemp(): Promise<void> {
+  const response = await fetch(`${apiBaseUrl}/orchestration/cleanup-temp`, {
+    method: 'POST',
+  })
+
+  if (response.ok) {
+    return
+  }
+
+  const payload = await parseErrorPayload(response)
+  throw new Error(payload)
+}

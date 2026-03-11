@@ -12,6 +12,7 @@ export const PIPELINE_STAGES = [
   { key: "script_generation", label: "Script Generation" },
   { key: "council_review", label: "Council Review" },
   { key: "director_plan", label: "Director Plan" },
+  { key: "cameraman_plan", label: "Cameraman Plan" },
   { key: "video_generation", label: "Video Generation" },
   { key: "youtube_publish", label: "YouTube Publish" },
 ] as const;

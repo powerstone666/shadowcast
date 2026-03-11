@@ -386,6 +386,7 @@ export class GenreSelectionWorkflow {
       candidateGenres: mapCandidateGenres(
         state.selectedGenres,
         modelResult.candidateGenres,
+        state.userPreference
       ),
     };
   }
@@ -533,20 +534,28 @@ function normalizeSelectedGenres(genres: string[]): string[] {
 }
 
 function mapCandidateGenres(
-  _selectedGenres: string[],
+  configuredGenres: string[],
   candidateGenres: string[],
+  userPreference?: string
 ): string[] {
-  // Accept any genre the AI suggests — configured genres are passed to the AI
-  // as preferences/hints via the prompt, not enforced as a hard allowlist here.
   const normalizedCandidates = Array.from(
     new Set(candidateGenres.map((genre) => genre.trim()).filter(Boolean)),
   );
 
-  if (normalizedCandidates.length === 0) {
-    throw new Error("Genre shortlist produced no candidates");
+  // If there's no user preference, strictly filter to configured genres
+  const validCandidates = userPreference
+    ? normalizedCandidates
+    : normalizedCandidates.filter((genre) =>
+        configuredGenres.some((cg) => cg.toLowerCase() === genre.toLowerCase())
+      );
+
+  if (validCandidates.length === 0) {
+    throw new Error(
+      `Genre shortlist produced no valid candidates from configured list: ${configuredGenres.join(", ")}`
+    );
   }
 
-  return normalizedCandidates.slice(0, 3);
+  return validCandidates.slice(0, 3);
 }
 
 function toErrorMessage(error: unknown): string {

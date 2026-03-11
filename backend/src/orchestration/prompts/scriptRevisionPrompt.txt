@@ -32,17 +32,28 @@ The story IS the escalating dread.
 - Character lines are short, fractured, terrified: *"That's… not possible."* / *"Run."* — NOT a calm discussion about what is happening.
 - If the council says the script lacks tension or atmosphere: REWRITE to add sensory dread at every stage. Cut any lines where characters calmly talk through the situation.
 
-**MODE 3 — DRAMA / HISTORY / BIOGRAPHY / ROMANCE / TRAGEDY**
+**MODE 3 — DRAMA / HISTORY**
 Dialogue IS appropriate as a story driver here.
 - Preserve and strengthen 3–4 back-and-forth dialogue exchanges embedded at the story's critical moment.
 - Narration sets context. Dialogue drives the emotional peak.
 - Every line of dialogue must reveal character, advance the conflict, or change the situation.
 
-**MODE 4 — DOCUMENTARY / SCIENCE / TECHNOLOGY / POLITICS / MYSTERY**
+**MODE 4 — DOCUMENTARY / SCIENCE / TECHNOLOGY / GEOPOLITICS / MYSTERY**
 Narrator-led revelation format.
 - Narration reveals surprising facts and unpacks why they matter.
 - Sparse but impactful quoted lines or reactions punctuate key revelations.
 - Structure: Hook fact → Why it matters → The twist or deeper truth → What it means.
+- For Geopolitics: use grounded, journalistic framing. NEVER sci-fi or cyberpunk.
+
+**MODE 5 — SPORTS**
+High-energy broadcast narration.
+- Narration captures the thrill: the play, the reaction, the stakes.
+- Preserve key quotes from players/coaches mid-action.
+
+**MODE 6 — BIOGRAPHY**
+Character-driven intimate narration.
+- Each beat reveals a new facet: a turning point, a secret, a pivotal decision.
+- Preserve key subject quotes at critical moments.
 
 **CRITICAL RULE**: Do NOT convert an action or horror script into a Drama/conversation script during revision. If the council flagged weak pacing or energy, the fix is more vivid action narration or deeper dread — not adding dialogue exchanges.
 
@@ -66,6 +77,8 @@ REVISION CONSTRAINTS (MUST comply — same rules as original script):
   - For HORROR: dread-building narration + short terrified reactions. Do NOT add calm dialogue.
   - For DRAMA/HISTORY: maintain 3–4 embedded dialogue exchanges at the critical moment.
   - For DOCUMENTARY: narrator-led revelation with sparse quoted lines.
+
+- **NARRATIVE CONTINUITY**: Ensure the script flows naturally. Fix any choppy, disjointed, or "bullet-point" sounding sentences. The script must read like ONE continuous, flowing story.
 
 - **CONTENT SAFETY**:
   - For FICTIONAL / MYTHOLOGICAL / FANTASY / HORROR content: action vocabulary is permitted and required. Use vivid action language. Avoid graphic gore or dismemberment — keep violence epic and cinematic, not gratuitous.

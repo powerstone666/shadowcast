@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { runWorkflow, terminateWorkflow } from '../../services/orchestration'
+import { cleanupTemp, runWorkflow, terminateWorkflow } from '../../services/orchestration'
 import { createPipelineSocket } from '../../services/pipelineSocket'
 import type { PipelineRealtimeSnapshot, PipelineSocketEvent } from '../../types'
 import CurrentPipelineRun from './CurrentPipelineRun'
@@ -35,6 +35,7 @@ function DashboardSection() {
   const [pipelineState, setPipelineState] = useState<PipelineRealtimeSnapshot>(defaultPipelineState)
   const [isConnected, setIsConnected] = useState(false)
   const [isStartingWorkflow, setIsStartingWorkflow] = useState(false)
+  const [isCleaningUp, setIsCleaningUp] = useState(false)
   const [isTerminatingWorkflow, setIsTerminatingWorkflow] = useState(false)
   const [testSelection, setTestSelection] = useState<ConnectionTestSelection>('api_key|all')
   const socketRef = useRef<WebSocket | null>(null)
@@ -156,6 +157,7 @@ function DashboardSection() {
     try {
       await runWorkflow(note)
     } catch {
+      // ignore
     } finally {
       setIsStartingWorkflow(false)
     }
@@ -170,8 +172,24 @@ function DashboardSection() {
     try {
       await terminateWorkflow()
     } catch {
+      // ignore
     } finally {
       setIsTerminatingWorkflow(false)
+    }
+  }
+
+  async function handleCleanup() {
+    if (isCleaningUp || pipelineState.isRunning) {
+      return
+    }
+
+    setIsCleaningUp(true)
+    try {
+      await cleanupTemp()
+    } catch {
+      // ignore
+    } finally {
+      setIsCleaningUp(false)
     }
   }
 
@@ -181,11 +199,15 @@ function DashboardSection() {
         pipelineState={pipelineState}
         isStartingWorkflow={isStartingWorkflow}
         isTerminatingWorkflow={isTerminatingWorkflow}
+        isCleaningUp={isCleaningUp}
         onRunWorkflow={(note) => {
           void handleRunWorkflow(note)
         }}
         onTerminateWorkflow={() => {
           void handleTerminateWorkflow()
+        }}
+        onCleanup={() => {
+          void handleCleanup()
         }}
       />
       <LivePipelineLogs

@@ -30,7 +30,7 @@ import {
 
 const syncedSegmentSchema = z.object({
   order: z.number().int().min(1),
-  durationSec: z.number().positive(),
+  durationSec: z.number().int().positive(),
   beat: z.string().trim().min(1),
   narration: z.string().trim().min(1),
   promptIntent: z.string().trim().min(1),
@@ -43,7 +43,7 @@ const syncedSegmentResponseSchema = z.object({
 
 const generatedVideoSegmentSchema = z.object({
   order: z.number().int().min(1),
-  durationSec: z.number().positive(),
+  durationSec: z.number().int().positive(),
   beat: z.string().trim().min(1),
   narration: z.string().trim().min(1),
   videoPrompt: z.string().trim().min(1),
@@ -136,6 +136,8 @@ export class VideoGenerationWorkflow {
         "videoGeneration",
       );
     if (cachedResult) {
+      pipelineRealtimeService.completeStage("cameraman_plan", "loaded cameraman plan from cache");
+      pipelineRealtimeService.beginStage("video_generation", "video generation started");
       pipelineRealtimeService.appendLog("loaded video generation from cache");
       return cachedResult;
     }
@@ -288,6 +290,17 @@ export class VideoGenerationWorkflow {
       );
     }
 
+    // Log the active key so stale-key issues are immediately visible in the pipeline logs.
+    const maskedKey = maskApiKey(videoGenConfig.apiKey);
+    this.logger.info("Video-gen config resolved", {
+      model: videoGenConfig.modelName,
+      apiUrl: videoGenConfig.apiUrl,
+      apiKey: maskedKey,
+    });
+    pipelineRealtimeService.appendLog(
+      `video-gen config: model=${videoGenConfig.modelName} key=${maskedKey} url=${videoGenConfig.apiUrl}`,
+    );
+
     if (!state.tempDir) {
       throw new Error("Temporary output directory is missing");
     }
@@ -304,7 +317,7 @@ export class VideoGenerationWorkflow {
     );
 
     const segmentPlans = await Promise.all(
-      state.syncedSegments.map(async (syncedSegment) => {
+      state.syncedSegments.map(async (syncedSegment, index) => {
         const fileNameStem = buildSegmentFileName(
           syncedSegment.order,
           syncedSegment.beat,
@@ -332,6 +345,7 @@ export class VideoGenerationWorkflow {
               scriptPackage: state.scriptPackage,
               breakdown: state.breakdown,
               currentSegment: syncedSegment,
+              previousSegments: state.syncedSegments.slice(0, index),
             },
             null,
             2,
@@ -356,6 +370,8 @@ export class VideoGenerationWorkflow {
 
     // PHASE 2 — Sequential video rendering.
     // DashScope allows only one active task per API key, so clips are submitted one at a time.
+    pipelineRealtimeService.completeStage("cameraman_plan", "cameraman planning completed");
+    pipelineRealtimeService.beginStage("video_generation", "video generation started");
     this.logger.info("Phase 2: sequential video clip rendering", {
       totalSegments: segmentPlans.length,
     });
@@ -395,15 +411,21 @@ export class VideoGenerationWorkflow {
       const signal = workflowControlService.getActiveSignal();
       let artifact: GeneratedVideoArtifact;
       try {
+        // Video generation API requires integer duration
+        const videoDurationSec = Math.round(validatedSegmentPlan.durationSec);
         artifact = await this.videoGenerationService.generateVideoClip({
           config: videoGenConfig,
           prompt: validatedSegmentPlan.videoPrompt,
-          durationSec: validatedSegmentPlan.durationSec,
+          durationSec: videoDurationSec,
           outputDir: state.tempDir,
           fileNameStem,
           ...(signal ? { signal } : {}),
         });
       } catch (err) {
+        pipelineRealtimeService.appendLog(
+          `Video Generation failed: ${(err as Error).message}`
+        );
+
         const isInappropriate =
           err instanceof Error &&
           err.message.toLowerCase().includes("inappropriate");
@@ -423,14 +445,23 @@ export class VideoGenerationWorkflow {
         pipelineRealtimeService.appendLog(
           `segment ${syncedSegment.order} sanitized model prompt (exact):\n${sanitizedPrompt}`,
         );
-        artifact = await this.videoGenerationService.generateVideoClip({
-          config: videoGenConfig,
-          prompt: sanitizedPrompt,
-          durationSec: validatedSegmentPlan.durationSec,
-          outputDir: state.tempDir,
-          fileNameStem,
-          ...(signal ? { signal } : {}),
-        });
+        try {
+          // Video generation API requires integer duration
+          const videoDurationSec = Math.round(validatedSegmentPlan.durationSec);
+          artifact = await this.videoGenerationService.generateVideoClip({
+            config: videoGenConfig,
+            prompt: sanitizedPrompt,
+            durationSec: videoDurationSec,
+            outputDir: state.tempDir,
+            fileNameStem,
+            ...(signal ? { signal } : {}),
+          });
+        } catch (retryErr) {
+          pipelineRealtimeService.appendLog(
+             `Video Generation failed: ${(retryErr as Error).message}`
+          );
+          throw retryErr;
+        }
         validatedSegmentPlan.videoPrompt = sanitizedPrompt;
       }
 
@@ -503,6 +534,16 @@ export class VideoGenerationWorkflow {
       },
     };
   }
+}
+
+function maskApiKey(apiKey: string): string {
+  if (apiKey.length <= 8) {
+    return "*".repeat(apiKey.length);
+  }
+  const head = apiKey.slice(0, 4);
+  const tail = apiKey.slice(-4);
+  const masked = "*".repeat(Math.min(apiKey.length - 8, 12));
+  return `${head}${masked}${tail}`;
 }
 
 function resolveSegmentPlanningRole(cameramanConfig: AgentConfigInput): string {
@@ -598,7 +639,8 @@ function validateGeneratedVideoSegment(
 }
 
 function roundDuration(value: number): number {
-  return Math.round(value * 100) / 100;
+  // Return integer duration - ensure whole number for video generation API
+  return Math.round(value);
 }
 
 function buildSegmentFileName(order: number, beat: string): string {

@@ -201,11 +201,11 @@ export class ScriptGenerationWorkflow {
     const configuredGenres = normalizeGenres(genrePool.selectedGenres);
 
     if (configuredGenres.length === 0) {
-      throw new ConflictError("No genres are configured");
+      this.logger.warn("No genres are configured in the database. Proceeding with unconfigured genre.");
     }
 
     if (!configuredGenres.includes(genre)) {
-      throw new ConflictError(`Genre "${genre}" is not configured`);
+      this.logger.warn(`Genre "${genre}" is not in the configured list. Proceeding anyway per relaxed validation.`);
     }
 
     const recentContent =

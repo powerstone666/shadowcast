@@ -11,7 +11,7 @@ import { startScheduler } from "./services/schedulerService.js";
 
 const app = express();
 const dbService = new PgDbService();
-const port = 3000;
+const port = 3001;
 
 app.use((req, res, next) => {
   const frontendUrl = process.env.FRONTEND_URL;

@@ -9,7 +9,7 @@ GENRE CLASS — Identify this before shortlisting anything.
 Genres fall into two classes. The class determines what "worth researching further" actually means.
 
 **CLASS 1 — TIMELESS GENRES**
-Mythology, Horror, Fantasy, Folklore, Martial Arts, Legend, Sci-Fi, Romance, Tragedy, Supernatural
+Mythology, Horror, Supernatural, Fantasy, Biography, History
 
 For Timeless genres "worth researching further" means:
 - There is rich, original source material available — foundational epics, folk legends, classic texts, world-famous stories — that can be turned into a compelling short-form video.
@@ -24,7 +24,7 @@ What does NOT make a Timeless genre worth shortlisting:
 If a recent game, movie, or streaming release appears as a reason to shortlist a Timeless genre, treat it only as a SIGNAL that the audience appetite for the original source material is strong right now. The genre is shortlisted because the original stories are compelling, not because of the product.
 
 **CLASS 2 — RECENCY-APPROPRIATE GENRES**
-News, Current Events, Technology, Science, Politics, Economics, Business, Sports (recent), Health
+Geopolitics, Technology, Science, Sports
 
 For Recency genres "worth researching further" means:
 - There is a genuinely timely, relevant, and narratively compelling story happening right now.
@@ -43,8 +43,9 @@ You receive:
 
 Choose the top 3 candidate genres most worth researching further.
 
-- You must choose only from the configured genres.
-- If a user preference is provided, strongly weight shortlisting toward genres that align with that preference.
+- You must generally choose from the configured genres.
+- If a user preference is provided, prioritize shortlisting genres that align with that preference. You may suggest a new, unconfigured genre if it perfectly matches the user's explicit request.
+- **CRITICAL DEMOGRAPHIC TARGETING**: You must aggressively target Gen Z and young adults (ages 13–24), with a heavy focus on capturing the massive Indian market alongside the West. Favor high-energy, epic, or mind-blowing genres (e.g., Mythology, Horror, Fantasy, Sports, exciting Tech/Geopolitics). Avoid slow, dry, or purely academic angles.
 - Avoid genres that have been obviously overused in recent content unless there is a clearly different and stronger story angle available.
 - For Timeless genres: shortlist based on depth of available original source material and strength of emotional storytelling potential.
 - For Recency genres: shortlist based on current momentum, audience interest, and narrative potential.

@@ -59,7 +59,28 @@ Do not change segment order or duration.
 - **ZERO MUSIC-ONLY GAPS**: Do NOT generate any portion of the video where only music plays with no narration or spoken dialogue. Music is always background. Narration or dialogue must be present for every moment of the video.
 
 VIDEO STYLE RULES:
-- The video must use Anime-style animation. All visuals should be rendered in high-quality anime art style with expressive characters, dynamic action scenes, and vibrant colors.
+
+**GENRE-AWARE VISUAL STYLE — Match the genre you received to the correct style below.**
+
+| Genre | Signature Style | Key Visual Elements |
+|---|---|---|
+| **Mythology** | Epic painted anime | Bold line art, hand-painted textures, gold/amber highlights, ancient temple or battlefield backdrops, dramatic god-ray lighting |
+| **Horror / Supernatural** | Dark cel-shaded anime | High contrast, deep shadows, desaturated palette with red/green accents, flickering light sources, distorted perspective |
+| **Fantasy** | Vibrant stylized anime | Rich saturated colors, glowing energy effects, dynamic speed lines, otherworldly environments, dramatic power poses, impact frames |
+| **Biography** | Sepia portrait anime | Warm sepia/amber palette, portrait compositions, historical environments, intimate close-ups, ink-wash effects |
+| **History** | Sepia-toned painted anime | Parchment textures, aged color palette (sepia/muted), ink-wash effects, historical map overlays, dramatic battle/event compositions |
+| **Geopolitics** | Grounded motion-graphic | Clean flat-color illustrations, world maps with glowing pins, newsroom aesthetics, silhouette figures at conference tables, chess-game metaphors, spinning globes. NO sci-fi, NO cyberpunk. |
+| **Technology / Science** | Grounded infographic anime | Clean flat illustrations, realistic engineering diagrams, modern data displays. For real-world tech (e.g., drones, military gear, aircraft): keep it strictly grounded, realistic, and modern. NO sci-fi, NO alien ships, NO cyberpunk. |
+| **Sports** | Dynamic broadcast anime | Stadium lighting, athlete silhouettes in motion, scoreboard overlays, high-energy camera angles, replay-style slow motion |
+
+**HOW TO APPLY:**
+1. Read the genre you received in the input.
+2. Find the matching row above (use closest match if genre is a blend).
+3. Apply that row's Signature Style and Key Visual Elements to EVERY videoPrompt you write.
+4. Begin each videoPrompt with: "[STYLE: {Signature Style}]" so the visual model anchors to it.
+5. If the genre doesn't match any row exactly, pick the closest match.
+
+**UNIVERSAL RULES (apply to ALL genres):**
 - The video must feel like a narrator-driven story. Visuals should support and illustrate what the narrator is saying with **URGENCY AND PACE**.
 - Use native audio generation and dialogue delivery in the video prompt when supported by the model.
 - Write prompts so spoken lines are clearly produced and character mouth movement matches speech (lip-sync).
@@ -68,15 +89,13 @@ VIDEO STYLE RULES:
 - Characters must actively talk to each other with clear spoken dialogue — but dialogue must happen DURING the incident, not as a static conversation. Stage lines mid-confrontation, mid-standoff, mid-chase, mid-revelation.
 - **NO STATIC DIALOGUE SCENES**: Never show two characters standing still and talking. If dialogue is happening, something is also happening around them — a standoff, a pursuit, a moment of crisis, an intense face-to-face under pressure.
 - Dialogue and action are simultaneous: the character speaks WHILE the scene is in motion. Use close-ups on the speaker's face during a dynamic moment, then cut back to the wider kinetic scene.
-- Focus on strong visual storytelling plus speech-driven moments: expressive scenes, dramatic imagery, Anime-style animation, text overlays, and cinematic compositions.
-- Think of it as an **INTENSE ANIME ACTION FILM** — dialogue is sharp and clipped, delivered mid-incident, not as stand-alone conversation.
-- Emphasize anime-style characters, environments, reactions, data visualizations in anime style, maps with anime aesthetics, and dynamic anime-style motion that match the narration.
+- Focus on strong visual storytelling plus speech-driven moments: expressive scenes, dramatic imagery, text overlays, and cinematic compositions.
 - For rapid dialogue: Use quick cuts between characters, close-ups on expressions, dynamic camera angles
 - For emotional moments: Use dramatic camera movements, not static shots
 - For action/revelation: Use speed lines, impactful compositions, dramatic lighting
-- If narration includes dialogue (quoted lines), represent it on screen using visible dialogue text (e.g., anime-style speech bubbles, lower-third quote cards with anime aesthetics, or subtitles tied to the speaker).
+- If narration includes dialogue (quoted lines), represent it on screen using visible dialogue text (e.g., speech bubbles, lower-third quote cards, or subtitles tied to the speaker).
 - Do not drop dialogue lines: key quoted lines from narration must appear as on-screen text instructions in videoPrompt.
-- For dialogue shots, include explicit lip-sync guidance in videoPrompt, such as: "speaker faces camera in anime style, mouth movements accurately synchronized to the spoken line".
+- For dialogue shots, include explicit lip-sync guidance in videoPrompt, such as: "speaker faces camera, mouth movements accurately synchronized to the spoken line".
 - **MUSIC DIRECTION**: Visuals should match "fast-paced, energetic background score" - create scenes that feel urgent and engaging.
 
 **LANGUAGE — Read userPreference first and apply absolutely to narration AND videoPrompt.**
@@ -89,14 +108,37 @@ Step 1: Determine the audio language from userPreference.
 Step 2: Apply to the narration field.
 - The narration field in your output MUST be in the audio language determined above.
 - Copy it EXACTLY from the synced segment you received — do NOT translate, rephrase, or alter it in any way.
+- DO NOT add punctuation to close a sentence if it intentionally ends with an ellipsis or mid-thought. The director often splits sentences across segments to maintain continuous narrative flow. Preserve this exact flow.
 
-Step 3: Apply to videoPrompt — all spoken lines and on-screen text.
+Step 3: Preserve Visual Continuity (Anti-Hallucination - CRITICAL)
+- The video must feel like a continuous sequence, not disjointed random cuts.
+- AI HALLUCINATION PREVENTION: After 4-5 segments, video generators often forget character details and environments, causing visual breaks. You MUST combat this with explicit, redundant anchoring.
+- **CHARACTER ANCHORING**: Every time a character appears, include their FULL physical description:
+  - Gender, age, facial features (beard, glasses, scars)
+  - Hairstyle, hair color, hair length
+  - Clothing: color, style, fabric, accessories (necklace, hat, weapon)
+  - Distinctive features: height, build, posture, expression
+- **ENVIRONMENT ANCHORING**: Every scene must specify:
+  - Location type (forest, city street, throne room)
+  - Time of day, weather, lighting conditions
+  - Architectural details, color palette, background elements
+  - Persistent objects (tables, thrones, trees, buildings)
+- **REDUNDANT ANCHORING RULE**: Even if you mentioned a character's blue cloak in segment 2, mention it again in segments 4, 5, 6, etc. Assume the AI has amnesia after 2-3 segments.
+- **CONTINUITY TEMPLATE**: For characters appearing across multiple segments, use this format:
+  "The SAME [character name/type] with [exact physical description] wearing [exact clothing] in the SAME [environment] under [lighting]."
+- **SCENE TRANSITIONS**: If the scene changes, state clearly:
+  "Transition from [previous location] to [new location]. The SAME [character] now moves into [new environment]."
+- ALWAYS read `previousSegment` (if provided). If the action continues in the same location or with the same subject, you MUST explicitly copy the physical description of the subject and environment into your new `videoPrompt`.
+- Do not just say "the man runs." Say "the SAME rugged man in the torn green jacket runs through the SAME rainy neon-lit alleyway."
+- Force the AI image generator to remember the clothing, lighting, and setting by re-stating the exact description in the current prompt.
+
+Step 4: Apply to videoPrompt — all spoken lines and on-screen text.
 - Any quoted dialogue lines in videoPrompt (character speech, speech bubbles, subtitle text, spoken lines) MUST be in the audio language.
 - If Hindi: all character speech and subtitle text in videoPrompt must be in Hindi (Devanagari script).
 - If English: all character speech and subtitle text in videoPrompt must be in English.
 - The visual scene description parts of videoPrompt (scene staging, camera movement, visual style) may be written in English for optimal video model performance — but spoken content MUST be in the audio language.
 
-Step 4: Add an explicit language lock directive at the VERY START of every videoPrompt.
+Step 5: Add an explicit language lock directive at the VERY START of every videoPrompt.
 The text-to-video AI model may try to infer language from the story's cultural content (e.g., seeing Chinese character names and switching to Chinese audio). To prevent this, the FIRST line of every videoPrompt you write MUST be a hard language lock:
 - For English: "ALL NARRATION AND SPOKEN DIALOGUE IN THIS VIDEO MUST BE IN ENGLISH ONLY."
 - For Hindi: "इस वीडियो में सभी नैरेशन और बोले गए संवाद केवल हिंदी में होने चाहिए।"
@@ -123,7 +165,7 @@ CONTENT SAFETY (ABSOLUTE PRIORITY — violations cause generation failure):
   - "war", "conflict", "battle", "tension", "clash", "strike", "attack", "defense", "military", "combat", "weapon", "missile", "gun", "bomb", "explosion", "blood", "violence"
   - "scared", "terrified", "panic", "desperate", "flee", "escape", "fear", "anger", "danger", "hazard", "threat".
 - **STRICTLY PROHIBITED IMAGERY** — replace ONLY these specific elements:
-  - Actual weapons, bombs, explosions, gunfire, combat → replace with neutral symbolic objects (a ticking clock, balance scales, compass needles).
+  - Actual weapons, bombs, explosions, gunfire, combat → replace with neutral symbolic objects (a ticking clock, balance scales, compass needles, a chess board, a radar screen, or red pins on a physical map). **DO NOT REPLACE TO SCI-FI OR CYBERPUNK WEAPONS.**
   - Blood, gore, graphic violence, injury, death → replace with serene nature or abstract imagery.
   - Named real political leaders or identifiable living public figures → use "an unnamed official", "a historical figure", or describe their role without naming them.
   - Specific named government buildings (White House, Pentagon, Kremlin) → use "a grand stone civic building" or "a large classical hall".
@@ -131,6 +173,7 @@ CONTENT SAFETY (ABSOLUTE PRIORITY — violations cause generation failure):
 - **EVERYTHING ELSE SHOULD BE CONCRETE**: Show anime-style candles, quill pens, maps, city streets, crowds of people, historical settings, farms, forests, courtrooms, or whatever the narration describes — as long as it doesn't include the prohibited elements above.
 - People in the frame are fine as long as they are NOT identifiable real individuals and are NOT shown in distress, violence, or combat.
 - The tone should match the narration — it is fine for visuals to feel dramatic, solemn, emotional, or celebratory when the story calls for it.
+- **FOR MODERN GEOPOLITICS / TECHNOLOGY / CONFLICT TOPICS**: When discussing real-world tech, wars, drone strikes, or military standoffs (like US/Iran/Israel drones), **DO NOT GENERATE SCI-FI, CYBERPUNK, OR ALIEN TECHNOLOGY.** Keep the aesthetic grounded, realistic, and factual. Use realistic drone silhouettes, engineering diagrams, spinning globes, satellite imagery (without showing strikes), glowing fiber optic maps, or newsroom aesthetics. A real-world Shahed drone is a precise physical object, NOT an alien spaceship.
 
 STRICT DURATION: Copy the durationSec value EXACTLY from the currentSegment you are given. Do NOT change it. Never exceed 15 seconds for a single segment.
 

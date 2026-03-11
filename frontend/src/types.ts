@@ -96,6 +96,7 @@ export type PipelineStageKey =
   | 'script_generation'
   | 'council_review'
   | 'director_plan'
+  | 'cameraman_plan'
   | 'video_generation'
   | 'youtube_publish'
 
