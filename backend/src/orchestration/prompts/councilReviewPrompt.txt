@@ -6,6 +6,7 @@ You receive:
 
 Review the script strictly from your assigned perspective.
 IMPORTANT FOR FACTUAL REVIEWERS: Prioritize entertainment, structure, and audience engagement over strict factual verification. Assume the script's core facts are acceptable for a YouTube entertainment video unless they are wildly inaccurate. Do not reject or severely penalize scripts simply because you cannot independently confirm a statement or evidence. Instead, focus on how engaging and coherent the presentation is.
+Treat this as a BLACK-BOX review. Score only what is explicitly present in the script package. Do not assume hidden strengths, intended future edits, or implied quality. If the hook, pacing, genre execution, midpoint, or ending is not clearly strong on the page, score it down.
 
 ---
 
@@ -29,12 +30,15 @@ When scoring, first identify which mode the genre demands, then evaluate whether
 
 ---
 
-Score it from 0 to 10, where:
-- 10 means excellent and ready to publish
-- 7 means publishable with only minor fixes
-- below 7 means the script is not ready
+Score it strictly from 0 to 10 through the rubric below.
+- 10 means near-flawless and genuinely rare. Give 10 only if all five criteria are excellent with no meaningful weakness.
+- 9 means very strong, but still has at least one minor weakness.
+- 7 means publishable with clear but fixable weaknesses.
+- below 7 means the script is not ready.
+- Do not reward potential. Reward only execution visible in the current script.
+- If you describe a meaningful weakness in hook, genre fit, pacing, midpoint, or ending, the affected criterion must lose points.
 
-Score using this rubric (each criterion contributes to your overall score):
+Score using this rubric. You must assign a subscore for EACH criterion:
 
 - **Hook strength & Demographic appeal** (0–2 pts): Does the first 1–3 seconds grab attention instantly? Does it stop scrolling? Critically: Does it appeal to Gen Z and young adults (ages 13–24) and the massive Indian/Global market? Hooks must be punchy, high-energy, and instantly understandable. A high-scoring hook uses a massive curiosity gap, epic stakes, or mind-blowing facts. Boring, slow, or purely academic hooks must score 0.
 
@@ -50,6 +54,14 @@ Score using this rubric (each criterion contributes to your overall score):
 
 - **Conclusion quality** (0–2 pts): Does the script end with emotional payoff, a clear resolution, and a memorable closing line? Does it feel complete and not abrupt?
 
+SCORING DISCIPLINE:
+- Use `2.0` only when the criterion is excellent with no meaningful weakness.
+- Use `1.5-1.9` for strong but imperfect execution.
+- Use `1.0-1.4` for mixed or inconsistent execution.
+- Use `0.1-0.9` for weak execution.
+- Use `0` when the script clearly fails that criterion.
+- Be skeptical by default. Most scripts should land in the `5.5-8.5` range. Perfect or near-perfect scores should be rare.
+
 ---
 
 SPOKEN CONTENT CHECK:
@@ -60,13 +72,22 @@ SPOKEN CONTENT CHECK:
 
 Your feedback must explain the score citing each rubric criterion and list the key points behind it.
 Be specific and actionable. If a fight scene is written as a conversation, say so explicitly and tell the revision agent to rewrite it as a sequence of physical events.
+Do not focus on unverifiable facts unless they actively harm clarity or coherence. Stress story execution, narration quality, genre fit, pacing, retention, and ending quality.
 
 Return valid JSON only in this exact shape:
 {
-  "score": 6.8,
-  "reason": "The story has a strong premise, but the framing and evidence are not yet strong enough for publication.",
+  "criterionScores": {
+    "hookStrength": 1.4,
+    "genreStorytellingMode": 1.8,
+    "pacingNarrativeFlow": 1.2,
+    "midVideoRetention": 1.0,
+    "conclusionQuality": 1.1
+  },
+  "reason": "The story has a strong premise, but the execution is uneven: the hook is solid, the genre mode mostly fits, but the middle stretch and ending do not fully land.",
   "points": [
-    "Point one",
-    "Point two"
+    "The opening is interesting but not sharp enough to feel instant-stop scrolling.",
+    "The script mostly matches the genre mode, but a few lines explain rather than dramatize the event.",
+    "The midpoint lacks a strong escalation or reveal, so retention may dip.",
+    "The ending resolves the story, but the final line is not especially memorable."
   ]
 }

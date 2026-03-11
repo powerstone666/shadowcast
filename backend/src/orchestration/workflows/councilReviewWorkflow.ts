@@ -34,9 +34,15 @@ const COUNCIL_MEMBERS = [
 ] as const;
 
 const councilReviewResponseSchema = z.object({
-  score: z.number().min(0).max(10),
+  criterionScores: z.object({
+    hookStrength: z.number().min(0).max(2),
+    genreStorytellingMode: z.number().min(0).max(2),
+    pacingNarrativeFlow: z.number().min(0).max(2),
+    midVideoRetention: z.number().min(0).max(2),
+    conclusionQuality: z.number().min(0).max(2),
+  }),
   reason: z.string().trim().min(1),
-  points: z.array(z.string().trim().min(1)).min(2),
+  points: z.array(z.string().trim().min(1)).min(3),
 });
 
 const councilReviewPrompt = loadPrompt("councilReviewPrompt.txt", import.meta.url);
@@ -55,6 +61,13 @@ export type CouncilReview = {
   reviewer: CouncilMember["reviewer"];
   focus: CouncilMember["focus"];
   score: number;
+  criterionScores: {
+    hookStrength: number;
+    genreStorytellingMode: number;
+    pacingNarrativeFlow: number;
+    midVideoRetention: number;
+    conclusionQuality: number;
+  };
   reason: string;
   points: string[];
 };
@@ -220,7 +233,8 @@ export class CouncilReviewWorkflow {
           roleKey: member.roleKey,
           reviewer: member.reviewer,
           focus: member.focus,
-          score: roundScore(review.score),
+          criterionScores: normalizeCriterionScores(review.criterionScores),
+          score: calculateCouncilScore(review.criterionScores),
           reason: review.reason,
           points: normalizePoints(review.points),
         };
@@ -323,11 +337,49 @@ function normalizePoints(points: string[]): string[] {
     new Set(points.map((point) => point.trim()).filter(Boolean)),
   );
 
-  if (normalizedPoints.length < 2) {
-    throw new Error("Council review must include at least two unique feedback points");
+  if (normalizedPoints.length < 3) {
+    throw new Error("Council review must include at least three unique feedback points");
   }
 
   return normalizedPoints;
+}
+
+function normalizeCriterionScores(scores: {
+  hookStrength: number;
+  genreStorytellingMode: number;
+  pacingNarrativeFlow: number;
+  midVideoRetention: number;
+  conclusionQuality: number;
+}): CouncilReview["criterionScores"] {
+  return {
+    hookStrength: roundCriterionScore(scores.hookStrength),
+    genreStorytellingMode: roundCriterionScore(scores.genreStorytellingMode),
+    pacingNarrativeFlow: roundCriterionScore(scores.pacingNarrativeFlow),
+    midVideoRetention: roundCriterionScore(scores.midVideoRetention),
+    conclusionQuality: roundCriterionScore(scores.conclusionQuality),
+  };
+}
+
+function calculateCouncilScore(scores: {
+  hookStrength: number;
+  genreStorytellingMode: number;
+  pacingNarrativeFlow: number;
+  midVideoRetention: number;
+  conclusionQuality: number;
+}): number {
+  const normalizedScores = normalizeCriterionScores(scores);
+  const total =
+    normalizedScores.hookStrength +
+    normalizedScores.genreStorytellingMode +
+    normalizedScores.pacingNarrativeFlow +
+    normalizedScores.midVideoRetention +
+    normalizedScores.conclusionQuality;
+
+  return roundScore(total);
+}
+
+function roundCriterionScore(value: number): number {
+  return Math.round(value * 100) / 100;
 }
 
 function roundScore(value: number): number {
